@@ -278,76 +278,6 @@
           setProjectCost(roiSummary.totalCost);
         }
       }, [roiSummary]);
-
-      // Renovate vs Sell Calculator
-      const renovateVsSellCalc = useMemo(() => {
-        const currentHome = Number(homeValue) || 0;
-        const mortgage = Number(mortgageBalance) || 0;
-        const newHomePrice = Number(newHomePurchasePrice) || 0;
-        const renovationCost = roiSummary ? roiSummary.totalCost : projectCost;
-        const valueAdd = roiSummary ? roiSummary.avgValueAdd : renovationCost * 0.7; // Default 70% ROI if no ROI calc
-
-        if (currentHome === 0) return null;
-
-        // SCENARIO A: Renovate & Stay
-        const renovatedHomeValue = currentHome + valueAdd;
-        const renovateFinancingCost = renovationCost * (helocAPR / 100) * helocTerm * 0.5; // Rough interest estimate
-        const renovateTotalCost = renovationCost + renovateFinancingCost;
-        const renovateNewEquity = renovatedHomeValue - mortgage;
-        const renovateFutureValue = renovatedHomeValue * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
-        const renovateFutureEquity = renovateFutureValue - mortgage; // Simplified, doesn't account for mortgage paydown
-
-        // SCENARIO B: Sell & Move
-        const sellingCosts = currentHome * (sellingCostPercent / 100);
-        const saleProceeds = currentHome - mortgage - sellingCosts;
-        const newHomeDownPayment = newHomePrice * (newHomeDownPaymentPercent / 100);
-        const newHomeClosingCosts = newHomePrice * (newHomeClosingCostPercent / 100);
-        const cashNeededToMove = newHomeDownPayment + newHomeClosingCosts - saleProceeds;
-        const newMortgageAmount = newHomePrice - newHomeDownPayment;
-        const newHomeFutureValue = newHomePrice * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
-        const sellFutureEquity = newHomeFutureValue - newMortgageAmount; // Simplified
-
-        // Monthly payment comparison (rough estimate using 30-year mortgage at current rates)
-        const currentMonthlyPayment = mortgage > 0 ? calculateMonthlyPayment(mortgage, 6.5, 30) : 0;
-        const renovateMonthlyPayment = currentMonthlyPayment + (roiSummary ? calculations.heloc.monthly : 0);
-        const newHomeMonthlyPayment = calculateMonthlyPayment(newMortgageAmount, 6.5, 30);
-
-        // 5-year wealth comparison
-        const renovateWealth = renovateFutureEquity - renovateTotalCost;
-        const sellWealth = sellFutureEquity - (cashNeededToMove > 0 ? cashNeededToMove : 0);
-        const wealthDifference = renovateWealth - sellWealth;
-
-        return {
-          // Renovate scenario
-          renovationCost,
-          valueAdd,
-          renovatedHomeValue,
-          renovateFinancingCost,
-          renovateTotalCost,
-          renovateNewEquity,
-          renovateFutureValue,
-          renovateFutureEquity,
-          renovateMonthlyPayment,
-          renovateWealth,
-          
-          // Sell scenario
-          sellingCosts,
-          saleProceeds,
-          newHomeDownPayment,
-          newHomeClosingCosts,
-          cashNeededToMove,
-          newMortgageAmount,
-          newHomeFutureValue,
-          sellFutureEquity,
-          newHomeMonthlyPayment,
-          sellWealth,
-          
-          // Comparison
-          wealthDifference,
-          recommendation: wealthDifference > 5000 ? 'renovate' : wealthDifference < -5000 ? 'sell' : 'toss-up',
-          monthlyDifference: newHomeMonthlyPayment - renovateMonthlyPayment
-        };
-      }, [homeValue, mortgageBalance, newHomePurchasePrice, newHomeDownPaymentPercent, sellingCostPercent, newHomeClosingCostPercent, annualAppreciation, yearsToCompare, roiSummary, projectCost, helocAPR, helocTerm, calculations]);
       
       const getDefaultRates = (score) => {
         switch(score) {
@@ -479,6 +409,76 @@
           shortfall: needsMoreEquity ? projectCost - maxBorrowable : 0
         };
       }, [homeValue, mortgageBalance, projectCost]);
+
+      // Renovate vs Sell Calculator
+      const renovateVsSellCalc = useMemo(() => {
+        const currentHome = Number(homeValue) || 0;
+        const mortgage = Number(mortgageBalance) || 0;
+        const newHomePrice = Number(newHomePurchasePrice) || 0;
+        const renovationCost = roiSummary ? roiSummary.totalCost : projectCost;
+        const valueAdd = roiSummary ? roiSummary.avgValueAdd : renovationCost * 0.7; // Default 70% ROI if no ROI calc
+
+        if (currentHome === 0) return null;
+
+        // SCENARIO A: Renovate & Stay
+        const renovatedHomeValue = currentHome + valueAdd;
+        const renovateFinancingCost = renovationCost * (helocAPR / 100) * helocTerm * 0.5; // Rough interest estimate
+        const renovateTotalCost = renovationCost + renovateFinancingCost;
+        const renovateNewEquity = renovatedHomeValue - mortgage;
+        const renovateFutureValue = renovatedHomeValue * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
+        const renovateFutureEquity = renovateFutureValue - mortgage; // Simplified, doesn't account for mortgage paydown
+
+        // SCENARIO B: Sell & Move
+        const sellingCosts = currentHome * (sellingCostPercent / 100);
+        const saleProceeds = currentHome - mortgage - sellingCosts;
+        const newHomeDownPayment = newHomePrice * (newHomeDownPaymentPercent / 100);
+        const newHomeClosingCosts = newHomePrice * (newHomeClosingCostPercent / 100);
+        const cashNeededToMove = newHomeDownPayment + newHomeClosingCosts - saleProceeds;
+        const newMortgageAmount = newHomePrice - newHomeDownPayment;
+        const newHomeFutureValue = newHomePrice * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
+        const sellFutureEquity = newHomeFutureValue - newMortgageAmount; // Simplified
+
+        // Monthly payment comparison (rough estimate using 30-year mortgage at current rates)
+        const currentMonthlyPayment = mortgage > 0 ? calculateMonthlyPayment(mortgage, 6.5, 30) : 0;
+        const renovateMonthlyPayment = currentMonthlyPayment + (roiSummary ? calculations.heloc.monthly : 0);
+        const newHomeMonthlyPayment = calculateMonthlyPayment(newMortgageAmount, 6.5, 30);
+
+        // 5-year wealth comparison
+        const renovateWealth = renovateFutureEquity - renovateTotalCost;
+        const sellWealth = sellFutureEquity - (cashNeededToMove > 0 ? cashNeededToMove : 0);
+        const wealthDifference = renovateWealth - sellWealth;
+
+        return {
+          // Renovate scenario
+          renovationCost,
+          valueAdd,
+          renovatedHomeValue,
+          renovateFinancingCost,
+          renovateTotalCost,
+          renovateNewEquity,
+          renovateFutureValue,
+          renovateFutureEquity,
+          renovateMonthlyPayment,
+          renovateWealth,
+          
+          // Sell scenario
+          sellingCosts,
+          saleProceeds,
+          newHomeDownPayment,
+          newHomeClosingCosts,
+          cashNeededToMove,
+          newMortgageAmount,
+          newHomeFutureValue,
+          sellFutureEquity,
+          newHomeMonthlyPayment,
+          sellWealth,
+          
+          // Comparison
+          wealthDifference,
+          recommendation: wealthDifference > 5000 ? 'renovate' : wealthDifference < -5000 ? 'sell' : 'toss-up',
+          monthlyDifference: newHomeMonthlyPayment - renovateMonthlyPayment
+        };
+      }, [homeValue, mortgageBalance, newHomePurchasePrice, newHomeDownPaymentPercent, sellingCostPercent, newHomeClosingCostPercent, annualAppreciation, yearsToCompare, roiSummary, projectCost, helocAPR, helocTerm, calculations]);
 
       const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
       const formatCurrencyDecimals = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
