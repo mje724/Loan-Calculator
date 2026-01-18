@@ -177,26 +177,34 @@
           label: 'Structural / Code Compliant',
           description: 'Necessary work — often required for safety, insurance, or sale',
           items: {
-            roof: { name: 'Roof Replacement', roiMin: 55, roiMax: 65, icon: '🏠', tip: 'Asphalt shingle replacement. Metal roofing may have different ROI.' },
-            hvac: { name: 'HVAC System', roiMin: 50, roiMax: 66, icon: '❄️', tip: 'Heat pump conversions saw ROI drop from 104% to 66% in 2024 due to energy prices.' },
-            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡', tip: 'Essential for older homes. Required for many insurance policies.' },
-            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧', tip: 'Prevents costly water damage. High value for older homes with galvanized pipes.' },
-            foundation: { name: 'Foundation Repair', roiMin: 70, roiMax: 80, icon: '🧱', tip: 'Critical for sale — most buyers walk away from foundation issues.' },
-            windows: { name: 'Window Replacement', roiMin: 57, roiMax: 68, icon: '🪟', tip: 'Vinyl windows ~68% ROI, wood windows ~57% ROI.' },
-            siding: { name: 'Siding Replacement', roiMin: 68, roiMax: 86, icon: '🏗️', tip: 'Fiber cement siding ~86% ROI, vinyl siding ~68% ROI.' }
+            roofAsphalt: { name: 'Roof - Asphalt Shingle', roiMin: 55, roiMax: 65, icon: '🏠' },
+            roofMetal: { name: 'Roof - Metal/Standing Seam', roiMin: 45, roiMax: 55, icon: '🏠' },
+            hvacReplace: { name: 'HVAC - Replace Same Fuel', roiMin: 50, roiMax: 65, icon: '❄️' },
+            hvacConvert: { name: 'HVAC - Heat Pump Conversion', roiMin: 50, roiMax: 66, icon: '♻️' },
+            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡' },
+            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧' },
+            foundation: { name: 'Foundation Repair', roiMin: 70, roiMax: 80, icon: '🧱' },
+            windowsVinyl: { name: 'Windows - Vinyl', roiMin: 57, roiMax: 68, icon: '🪟' },
+            windowsWood: { name: 'Windows - Wood', roiMin: 52, roiMax: 57, icon: '🪟' },
+            sidingVinyl: { name: 'Siding - Vinyl', roiMin: 68, roiMax: 75, icon: '🏗️' },
+            sidingFiberCement: { name: 'Siding - Fiber Cement', roiMin: 80, roiMax: 86, icon: '🏗️' }
           }
         },
         aesthetic: {
           label: 'Aesthetic / Lifestyle',
           description: 'Value-add work — improves livability and appeal',
           items: {
-            kitchenMinor: { name: 'Kitchen Remodel (Minor)', roiMin: 96, roiMax: 113, icon: '🍳', tip: 'Cabinet refacing, new counters, updated appliances. Best interior ROI!' },
-            kitchenMajor: { name: 'Kitchen Remodel (Major)', roiMin: 38, roiMax: 51, icon: '👨‍🍳', tip: 'Full gut renovation with layout changes. Lower ROI but highest enjoyment.' },
-            bathroom: { name: 'Bathroom Remodel', roiMin: 61, roiMax: 80, icon: '🚿', tip: 'Midrange bath ~80% ROI, upscale bath ~61% ROI.' },
-            garageDoor: { name: 'Garage Door', roiMin: 194, roiMax: 268, icon: '🚗', tip: '#1 ROI project for 2 years running! Huge curb appeal impact.' },
-            flooring: { name: 'Flooring', roiMin: 70, roiMax: 80, icon: '🪵', tip: 'Hardwood and LVP both perform well. Avoid trendy patterns.' },
-            deck: { name: 'Deck/Patio Addition', roiMin: 60, roiMax: 75, icon: '🌳', tip: 'Wood deck ~75% ROI, composite deck ~60% ROI.' },
-            entryDoor: { name: 'Steel Entry Door', roiMin: 188, roiMax: 216, icon: '🚪', tip: '#2 ROI project — creates powerful first impression.' }
+            kitchenMinor: { name: 'Kitchen - Minor Remodel', roiMin: 96, roiMax: 113, icon: '🍳' },
+            kitchenMajor: { name: 'Kitchen - Major Remodel', roiMin: 38, roiMax: 51, icon: '👨‍🍳' },
+            bathMidrange: { name: 'Bathroom - Midrange', roiMin: 70, roiMax: 80, icon: '🚿' },
+            bathUpscale: { name: 'Bathroom - Upscale', roiMin: 55, roiMax: 61, icon: '🛁' },
+            garageDoor: { name: 'Garage Door Replacement', roiMin: 194, roiMax: 268, icon: '🚗' },
+            entryDoorSteel: { name: 'Entry Door - Steel', roiMin: 188, roiMax: 216, icon: '🚪' },
+            entryDoorFiberglass: { name: 'Entry Door - Fiberglass', roiMin: 90, roiMax: 110, icon: '🚪' },
+            flooringHardwood: { name: 'Flooring - Hardwood', roiMin: 70, roiMax: 80, icon: '🪵' },
+            flooringLVP: { name: 'Flooring - LVP/Vinyl', roiMin: 60, roiMax: 70, icon: '🪵' },
+            deckWood: { name: 'Deck - Wood', roiMin: 68, roiMax: 75, icon: '🌳' },
+            deckComposite: { name: 'Deck - Composite', roiMin: 55, roiMax: 60, icon: '🌳' }
           }
         }
       };
