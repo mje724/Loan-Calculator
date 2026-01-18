@@ -146,6 +146,8 @@
     const LoanCalculator = () => {
       const [projectCost, setProjectCost] = useState(25000);
       const [creditScore, setCreditScore] = useState('good');
+      const [homeValue, setHomeValue] = useState('');
+      const [mortgageBalance, setMortgageBalance] = useState('');
       const [showAdvanced, setShowAdvanced] = useState(false);
       const [interactionCount, setInteractionCount] = useState(0);
       const [showLeadForm, setShowLeadForm] = useState(false);
@@ -198,6 +200,12 @@
           heloc_apr: helocAPR,
           monthly_payment_unsecured: calculations.unsecured.monthly,
           monthly_payment_heloc: calculations.heloc.monthly,
+          home_value: homeValue ? Number(homeValue) : null,
+          mortgage_balance: mortgageBalance ? Number(mortgageBalance) : null,
+          equity_amount: equityCalc ? equityCalc.equity : null,
+          equity_percent: equityCalc ? equityCalc.equityPercent : null,
+          max_heloc_amount: equityCalc ? equityCalc.maxBorrowable : null,
+          heloc_eligible: equityCalc ? equityCalc.qualifiesForHeloc : null,
           recommendation: recommendation.title,
           consent_given: true,
           submitted_at: new Date().toISOString(),
@@ -257,6 +265,28 @@
           interestDifference: helocInterest - unsecuredInterest
         };
       }, [projectCost, unsecuredAPR, unsecuredTerm, helocAPR, helocTerm, closingCostPercent]);
+
+      // Equity calculations
+      const equityCalc = useMemo(() => {
+        const home = Number(homeValue) || 0;
+        const mortgage = Number(mortgageBalance) || 0;
+        if (home === 0) return null;
+        
+        const equity = home - mortgage;
+        const equityPercent = (equity / home) * 100;
+        const maxBorrowable = Math.max(0, (home * 0.80) - mortgage); // 80% LTV limit
+        const qualifiesForHeloc = equityPercent >= 20 && maxBorrowable >= projectCost;
+        const needsMoreEquity = maxBorrowable < projectCost;
+        
+        return {
+          equity,
+          equityPercent,
+          maxBorrowable,
+          qualifiesForHeloc,
+          needsMoreEquity,
+          shortfall: needsMoreEquity ? projectCost - maxBorrowable : 0
+        };
+      }, [homeValue, mortgageBalance, projectCost]);
 
       const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
       const formatCurrencyDecimals = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
@@ -323,6 +353,63 @@
                     </select>
                     <p className="mt-2 text-xs text-slate-500">Your credit score affects available rates</p>
                   </div>
+                </div>
+
+                {/* Equity Estimator */}
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-lg">🏠</span>
+                    <h3 className="text-sm font-semibold text-slate-700">Check Your HELOC Eligibility</h3>
+                    <span className="text-xs text-slate-500">(Optional)</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="homeValue" className="text-sm font-medium text-slate-600 mb-1">Estimated Home Value</label>
+                      <div className="relative mt-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                        <input id="homeValue" type="number" value={homeValue} onChange={(e) => setHomeValue(e.target.value)} placeholder="400,000" className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-base text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-600 mb-1">Mortgage Balance Owed</label>
+                      <div className="relative mt-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                        <input id="mortgageBalance" type="number" value={mortgageBalance} onChange={(e) => setMortgageBalance(e.target.value)} placeholder="250,000" className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-base text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Equity Results */}
+                  {equityCalc && (
+                    <div className={`mt-4 p-4 rounded-xl ${equityCalc.qualifiesForHeloc ? 'bg-emerald-50 border border-emerald-200' : equityCalc.equityPercent >= 20 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">{equityCalc.qualifiesForHeloc ? '✅' : equityCalc.equityPercent >= 20 ? '⚠️' : '❌'}</span>
+                        <div className="flex-1">
+                          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-2">
+                            <div>
+                              <p className="text-xs text-slate-500">Your Equity</p>
+                              <p className="text-lg font-bold text-slate-800">{formatCurrency(equityCalc.equity)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Equity %</p>
+                              <p className="text-lg font-bold text-slate-800">{equityCalc.equityPercent.toFixed(1)}%</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500">Max HELOC Amount</p>
+                              <p className="text-lg font-bold text-slate-800">{formatCurrency(equityCalc.maxBorrowable)}</p>
+                            </div>
+                          </div>
+                          {equityCalc.qualifiesForHeloc ? (
+                            <p className="text-sm text-emerald-700 font-medium">You likely qualify for a HELOC to cover this {formatCurrency(projectCost)} project.</p>
+                          ) : equityCalc.equityPercent < 20 ? (
+                            <p className="text-sm text-red-700 font-medium">Most lenders require at least 20% equity. You're at {equityCalc.equityPercent.toFixed(1)}%.</p>
+                          ) : (
+                            <p className="text-sm text-amber-700 font-medium">Your max HELOC ({formatCurrency(equityCalc.maxBorrowable)}) is {formatCurrency(equityCalc.shortfall)} short of your project cost. Consider a smaller project or supplementing with a personal loan.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Advanced Settings */}
@@ -432,16 +519,35 @@
                         </InfoButton>
                       </h3>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
-                      Requires Equity
-                      <InfoButton title="What is Home Equity?">
-                        <p><strong>Home equity</strong> = Your home's current value minus what you still owe on your mortgage.</p>
-                        <p className="mt-2"><strong>Example:</strong></p>
+                    {equityCalc ? (
+                      equityCalc.qualifiesForHeloc ? (
+                        <span className="inline-flex items-center px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">✓ You Likely Qualify</span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">May Not Qualify</span>
+                      )
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                        Requires Equity
+                        <InfoButton title="What is Home Equity?">
+                          <p><strong>Home equity</strong> = Your home's current value minus what you still owe on your mortgage.</p>
+                          <p className="mt-2"><strong>Example:</strong></p>
                         <p className="text-xs">Home value: $400,000<br/>Mortgage owed: $250,000<br/>Your equity: $150,000</p>
                         <p className="mt-2 text-xs text-slate-500">Most lenders require 15-20% equity and limit total borrowing to 80-85% of home value.</p>
                       </InfoButton>
                     </span>
+                    )}
                   </div>
+
+                  {/* Eligibility warning if user entered equity info but doesn't qualify */}
+                  {equityCalc && !equityCalc.qualifiesForHeloc && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                      <p className="text-xs text-red-700">
+                        <strong>Based on your equity:</strong> {equityCalc.equityPercent < 20 
+                          ? `You have ${equityCalc.equityPercent.toFixed(1)}% equity (20% typically required).`
+                          : `Max borrowable is ${formatCurrency(equityCalc.maxBorrowable)}, but your project costs ${formatCurrency(projectCost)}.`}
+                      </p>
+                    </div>
+                  )}
 
                   <p className="text-blue-600 font-semibold text-sm mb-4">Paid off by {new Date().getFullYear() + helocTerm}</p>
 
