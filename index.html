@@ -464,8 +464,8 @@
               </div>
             </div>
 
-            {/* Lead Gen Form */}
-            {showLeadForm && !leadSubmitted && (
+            {/* Lead Gen Form - always visible */}
+            {!leadSubmitted && (
               <div className="mt-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 sm:p-8 border-2 border-emerald-200">
                 <div className="flex items-start gap-4">
                   <span className="text-3xl">📧</span>
@@ -492,7 +492,6 @@
                       </button>
                     </form>
                   </div>
-                  <button onClick={() => setShowLeadForm(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Close">×</button>
                 </div>
               </div>
             )}
