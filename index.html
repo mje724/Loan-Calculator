@@ -159,6 +159,195 @@
       const [consentGiven, setConsentGiven] = useState(false);
       const [isSubmitting, setIsSubmitting] = useState(false);
       const [submitError, setSubmitError] = useState('');
+      const [selectedProjects, setSelectedProjects] = useState({});
+      const [showROICalculator, setShowROICalculator] = useState(false);
+      const [showRenovateVsSell, setShowRenovateVsSell] = useState(false);
+      
+      // Renovate vs Sell inputs
+      const [newHomePurchasePrice, setNewHomePurchasePrice] = useState('');
+      const [newHomeDownPaymentPercent, setNewHomeDownPaymentPercent] = useState(20);
+      const [sellingCostPercent, setSellingCostPercent] = useState(9);
+      const [newHomeClosingCostPercent, setNewHomeClosingCostPercent] = useState(3);
+      const [annualAppreciation, setAnnualAppreciation] = useState(3);
+      const [yearsToCompare, setYearsToCompare] = useState(5);
+
+      // Project types with ROI data
+      const projectTypes = {
+        structural: {
+          label: 'Structural / Code Compliant',
+          description: 'Necessary work — often required for safety, insurance, or sale',
+          items: {
+            roof: { name: 'Roof Replacement', roiMin: 60, roiMax: 65, icon: '🏠' },
+            hvac: { name: 'HVAC System', roiMin: 60, roiMax: 70, icon: '❄️' },
+            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡' },
+            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧' },
+            foundation: { name: 'Foundation Repair', roiMin: 75, roiMax: 85, icon: '🧱' },
+            windows: { name: 'Window Replacement', roiMin: 65, roiMax: 70, icon: '🪟' },
+            siding: { name: 'Siding Replacement', roiMin: 65, roiMax: 75, icon: '🏗️' }
+          }
+        },
+        aesthetic: {
+          label: 'Aesthetic / Lifestyle',
+          description: 'Value-add work — improves livability and appeal',
+          items: {
+            kitchenMinor: { name: 'Kitchen Remodel (Minor)', roiMin: 75, roiMax: 80, icon: '🍳' },
+            kitchenMajor: { name: 'Kitchen Remodel (Major)', roiMin: 50, roiMax: 60, icon: '👨‍🍳' },
+            bathroom: { name: 'Bathroom Remodel', roiMin: 60, roiMax: 70, icon: '🚿' },
+            garageDoor: { name: 'Garage Door', roiMin: 90, roiMax: 100, icon: '🚗' },
+            flooring: { name: 'Flooring', roiMin: 70, roiMax: 80, icon: '🪵' },
+            deck: { name: 'Deck/Patio Addition', roiMin: 65, roiMax: 75, icon: '🌳' },
+            paint: { name: 'Interior Paint', roiMin: 100, roiMax: 150, icon: '🎨' }
+          }
+        }
+      };
+
+      const toggleProject = (key) => {
+        setSelectedProjects(prev => {
+          const newProjects = { ...prev };
+          if (newProjects[key]) {
+            delete newProjects[key];
+          } else {
+            newProjects[key] = { cost: '' };
+          }
+          return newProjects;
+        });
+      };
+
+      const updateProjectCost = (key, cost) => {
+        setSelectedProjects(prev => ({
+          ...prev,
+          [key]: { ...prev[key], cost }
+        }));
+      };
+
+      // Calculate ROI summary
+      const roiSummary = useMemo(() => {
+        const selected = Object.entries(selectedProjects).filter(([_, v]) => v.cost && Number(v.cost) > 0);
+        if (selected.length === 0) return null;
+
+        let totalCost = 0;
+        let totalValueMin = 0;
+        let totalValueMax = 0;
+        let structuralCost = 0;
+        let aestheticCost = 0;
+
+        selected.forEach(([key, data]) => {
+          const cost = Number(data.cost);
+          totalCost += cost;
+          
+          // Find the project info
+          let projectInfo = null;
+          let isStructural = false;
+          if (projectTypes.structural.items[key]) {
+            projectInfo = projectTypes.structural.items[key];
+            isStructural = true;
+            structuralCost += cost;
+          } else if (projectTypes.aesthetic.items[key]) {
+            projectInfo = projectTypes.aesthetic.items[key];
+            aestheticCost += cost;
+          }
+
+          if (projectInfo) {
+            totalValueMin += cost * (projectInfo.roiMin / 100);
+            totalValueMax += cost * (projectInfo.roiMax / 100);
+          }
+        });
+
+        const avgValueAdd = (totalValueMin + totalValueMax) / 2;
+        const blendedROI = totalCost > 0 ? (avgValueAdd / totalCost) * 100 : 0;
+        const structuralPercent = totalCost > 0 ? (structuralCost / totalCost) * 100 : 0;
+
+        return {
+          totalCost,
+          totalValueMin,
+          totalValueMax,
+          avgValueAdd,
+          blendedROI,
+          structuralCost,
+          aestheticCost,
+          structuralPercent,
+          netCostMin: totalCost - totalValueMax,
+          netCostMax: totalCost - totalValueMin,
+          projectCount: selected.length
+        };
+      }, [selectedProjects]);
+
+      // Sync total project cost with ROI calculator
+      useEffect(() => {
+        if (roiSummary && roiSummary.totalCost > 0) {
+          setProjectCost(roiSummary.totalCost);
+        }
+      }, [roiSummary]);
+
+      // Renovate vs Sell Calculator
+      const renovateVsSellCalc = useMemo(() => {
+        const currentHome = Number(homeValue) || 0;
+        const mortgage = Number(mortgageBalance) || 0;
+        const newHomePrice = Number(newHomePurchasePrice) || 0;
+        const renovationCost = roiSummary ? roiSummary.totalCost : projectCost;
+        const valueAdd = roiSummary ? roiSummary.avgValueAdd : renovationCost * 0.7; // Default 70% ROI if no ROI calc
+
+        if (currentHome === 0) return null;
+
+        // SCENARIO A: Renovate & Stay
+        const renovatedHomeValue = currentHome + valueAdd;
+        const renovateFinancingCost = renovationCost * (helocAPR / 100) * helocTerm * 0.5; // Rough interest estimate
+        const renovateTotalCost = renovationCost + renovateFinancingCost;
+        const renovateNewEquity = renovatedHomeValue - mortgage;
+        const renovateFutureValue = renovatedHomeValue * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
+        const renovateFutureEquity = renovateFutureValue - mortgage; // Simplified, doesn't account for mortgage paydown
+
+        // SCENARIO B: Sell & Move
+        const sellingCosts = currentHome * (sellingCostPercent / 100);
+        const saleProceeds = currentHome - mortgage - sellingCosts;
+        const newHomeDownPayment = newHomePrice * (newHomeDownPaymentPercent / 100);
+        const newHomeClosingCosts = newHomePrice * (newHomeClosingCostPercent / 100);
+        const cashNeededToMove = newHomeDownPayment + newHomeClosingCosts - saleProceeds;
+        const newMortgageAmount = newHomePrice - newHomeDownPayment;
+        const newHomeFutureValue = newHomePrice * Math.pow(1 + (annualAppreciation / 100), yearsToCompare);
+        const sellFutureEquity = newHomeFutureValue - newMortgageAmount; // Simplified
+
+        // Monthly payment comparison (rough estimate using 30-year mortgage at current rates)
+        const currentMonthlyPayment = mortgage > 0 ? calculateMonthlyPayment(mortgage, 6.5, 30) : 0;
+        const renovateMonthlyPayment = currentMonthlyPayment + (roiSummary ? calculations.heloc.monthly : 0);
+        const newHomeMonthlyPayment = calculateMonthlyPayment(newMortgageAmount, 6.5, 30);
+
+        // 5-year wealth comparison
+        const renovateWealth = renovateFutureEquity - renovateTotalCost;
+        const sellWealth = sellFutureEquity - (cashNeededToMove > 0 ? cashNeededToMove : 0);
+        const wealthDifference = renovateWealth - sellWealth;
+
+        return {
+          // Renovate scenario
+          renovationCost,
+          valueAdd,
+          renovatedHomeValue,
+          renovateFinancingCost,
+          renovateTotalCost,
+          renovateNewEquity,
+          renovateFutureValue,
+          renovateFutureEquity,
+          renovateMonthlyPayment,
+          renovateWealth,
+          
+          // Sell scenario
+          sellingCosts,
+          saleProceeds,
+          newHomeDownPayment,
+          newHomeClosingCosts,
+          cashNeededToMove,
+          newMortgageAmount,
+          newHomeFutureValue,
+          sellFutureEquity,
+          newHomeMonthlyPayment,
+          sellWealth,
+          
+          // Comparison
+          wealthDifference,
+          recommendation: wealthDifference > 5000 ? 'renovate' : wealthDifference < -5000 ? 'sell' : 'toss-up',
+          monthlyDifference: newHomeMonthlyPayment - renovateMonthlyPayment
+        };
+      }, [homeValue, mortgageBalance, newHomePurchasePrice, newHomeDownPaymentPercent, sellingCostPercent, newHomeClosingCostPercent, annualAppreciation, yearsToCompare, roiSummary, projectCost, helocAPR, helocTerm, calculations]);
       
       const getDefaultRates = (score) => {
         switch(score) {
@@ -206,6 +395,9 @@
           equity_percent: equityCalc ? equityCalc.equityPercent : null,
           max_heloc_amount: equityCalc ? equityCalc.maxBorrowable : null,
           heloc_eligible: equityCalc ? equityCalc.qualifiesForHeloc : null,
+          selected_projects: Object.keys(selectedProjects).length > 0 ? JSON.stringify(selectedProjects) : null,
+          project_roi: roiSummary ? roiSummary.blendedROI : null,
+          structural_percent: roiSummary ? roiSummary.structuralPercent : null,
           recommendation: recommendation.title,
           consent_given: true,
           submitted_at: new Date().toISOString(),
@@ -325,13 +517,398 @@
 
             {/* Main Calculator - wrapped in main for semantics */}
             <main>
+              {/* ROI Calculator Toggle */}
+              <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-6 sm:p-8 mb-6">
+                <button 
+                  onClick={() => setShowROICalculator(!showROICalculator)}
+                  className="w-full flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📊</span>
+                    <div className="text-left">
+                      <h2 className="text-lg font-bold text-slate-800">Project ROI Calculator</h2>
+                      <p className="text-sm text-slate-600">Select your work types and see estimated return on investment</p>
+                    </div>
+                  </div>
+                  <span className={`text-2xl transition-transform ${showROICalculator ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+
+                {showROICalculator && (
+                  <div className="mt-6 pt-6 border-t border-blue-200">
+                    {/* Structural Projects */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">🔧</span>
+                        <h3 className="font-semibold text-slate-800">{projectTypes.structural.label}</h3>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-3">{projectTypes.structural.description}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {Object.entries(projectTypes.structural.items).map(([key, project]) => (
+                          <div key={key} className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedProjects[key] ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                            <div className="flex items-center gap-2" onClick={() => toggleProject(key)}>
+                              <input 
+                                type="checkbox" 
+                                checked={!!selectedProjects[key]} 
+                                onChange={() => toggleProject(key)}
+                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                              />
+                              <span>{project.icon}</span>
+                              <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
+                              <span className="text-xs text-slate-500">{project.roiMin}-{project.roiMax}% ROI</span>
+                            </div>
+                            {selectedProjects[key] && (
+                              <div className="mt-2 relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                <input
+                                  type="number"
+                                  value={selectedProjects[key].cost}
+                                  onChange={(e) => updateProjectCost(key, e.target.value)}
+                                  placeholder="Enter cost"
+                                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Aesthetic Projects */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">🎨</span>
+                        <h3 className="font-semibold text-slate-800">{projectTypes.aesthetic.label}</h3>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-3">{projectTypes.aesthetic.description}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {Object.entries(projectTypes.aesthetic.items).map(([key, project]) => (
+                          <div key={key} className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedProjects[key] ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                            <div className="flex items-center gap-2" onClick={() => toggleProject(key)}>
+                              <input 
+                                type="checkbox" 
+                                checked={!!selectedProjects[key]} 
+                                onChange={() => toggleProject(key)}
+                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                              />
+                              <span>{project.icon}</span>
+                              <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
+                              <span className="text-xs text-slate-500">{project.roiMin}-{project.roiMax}% ROI</span>
+                            </div>
+                            {selectedProjects[key] && (
+                              <div className="mt-2 relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                <input
+                                  type="number"
+                                  value={selectedProjects[key].cost}
+                                  onChange={(e) => updateProjectCost(key, e.target.value)}
+                                  placeholder="Enter cost"
+                                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ROI Summary */}
+                    {roiSummary && (
+                      <div className="bg-white rounded-xl p-5 border border-slate-200">
+                        <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                          <span>📈</span> Your Project Summary
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                          <div className="text-center p-3 bg-slate-50 rounded-lg">
+                            <p className="text-xs text-slate-500 mb-1">Total Cost</p>
+                            <p className="text-xl font-bold text-slate-800">{formatCurrency(roiSummary.totalCost)}</p>
+                          </div>
+                          <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                            <p className="text-xs text-slate-500 mb-1">Est. Value Added</p>
+                            <p className="text-xl font-bold text-emerald-600">{formatCurrency(roiSummary.avgValueAdd)}</p>
+                          </div>
+                          <div className="text-center p-3 bg-blue-50 rounded-lg">
+                            <p className="text-xs text-slate-500 mb-1">Blended ROI</p>
+                            <p className="text-xl font-bold text-blue-600">{roiSummary.blendedROI.toFixed(0)}%</p>
+                          </div>
+                          <div className="text-center p-3 bg-amber-50 rounded-lg">
+                            <p className="text-xs text-slate-500 mb-1">Net Cost</p>
+                            <p className="text-xl font-bold text-amber-600">{formatCurrency(roiSummary.totalCost - roiSummary.avgValueAdd)}</p>
+                          </div>
+                        </div>
+
+                        {/* Structural vs Aesthetic Breakdown */}
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs text-slate-500 mb-1">
+                            <span>Structural: {formatCurrency(roiSummary.structuralCost)}</span>
+                            <span>Aesthetic: {formatCurrency(roiSummary.aestheticCost)}</span>
+                          </div>
+                          <div className="h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                            <div 
+                              className="bg-blue-500 h-full transition-all"
+                              style={{ width: `${roiSummary.structuralPercent}%` }}
+                            />
+                            <div 
+                              className="bg-indigo-400 h-full transition-all"
+                              style={{ width: `${100 - roiSummary.structuralPercent}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Insight */}
+                        <div className={`p-3 rounded-lg ${roiSummary.structuralPercent >= 50 ? 'bg-blue-50 border border-blue-200' : 'bg-amber-50 border border-amber-200'}`}>
+                          <p className="text-sm">
+                            {roiSummary.structuralPercent >= 50 ? (
+                              <><span className="font-semibold text-blue-700">🛡️ Investment Protection:</span> <span className="text-blue-600">{roiSummary.structuralPercent.toFixed(0)}% of your budget is structural work — this protects your home's value long-term.</span></>
+                            ) : (
+                              <><span className="font-semibold text-amber-700">💡 Consider Your Timeline:</span> <span className="text-amber-600">{(100 - roiSummary.structuralPercent).toFixed(0)}% is aesthetic work. Great for enjoyment, but if selling within 3-5 years, you may not fully recoup costs.</span></>
+                            )}
+                          </p>
+                        </div>
+
+                        <p className="text-xs text-slate-400 mt-3">* ROI estimates based on national averages from Remodeling Magazine's Cost vs. Value Report. Actual returns vary by location and market conditions.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* Renovate vs Sell Calculator */}
+              <section className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-sm border border-amber-200 p-6 sm:p-8 mb-6">
+                <button 
+                  onClick={() => setShowRenovateVsSell(!showRenovateVsSell)}
+                  className="w-full flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏡</span>
+                    <div className="text-left">
+                      <h2 className="text-lg font-bold text-slate-800">Renovate vs. Sell Calculator</h2>
+                      <p className="text-sm text-slate-600">Should you improve your current home or buy a new one?</p>
+                    </div>
+                  </div>
+                  <span className={`text-2xl transition-transform ${showRenovateVsSell ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+
+                {showRenovateVsSell && (
+                  <div className="mt-6 pt-6 border-t border-amber-200">
+                    {/* Check if we have required inputs */}
+                    {!homeValue || !mortgageBalance ? (
+                      <div className="bg-white rounded-xl p-5 border border-amber-300 text-center">
+                        <p className="text-amber-700 font-medium mb-2">⚠️ Enter your home details first</p>
+                        <p className="text-sm text-slate-600">Fill in your home value and mortgage balance in the "Check Your HELOC Eligibility" section below to use this calculator.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* New Home Inputs */}
+                        <div className="bg-white rounded-xl p-5 border border-slate-200 mb-4">
+                          <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <span>🏠</span> If You Were to Move...
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <label className="text-sm font-medium text-slate-600 mb-1 block">New Home Purchase Price</label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                                <input
+                                  type="number"
+                                  value={newHomePurchasePrice}
+                                  onChange={(e) => setNewHomePurchasePrice(e.target.value)}
+                                  placeholder="450,000"
+                                  className="w-full pl-7 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-slate-600 mb-1 block">Down Payment</label>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="range"
+                                  min="5"
+                                  max="30"
+                                  value={newHomeDownPaymentPercent}
+                                  onChange={(e) => setNewHomeDownPaymentPercent(Number(e.target.value))}
+                                  className="flex-1"
+                                />
+                                <span className="text-sm font-medium text-slate-700 w-12">{newHomeDownPaymentPercent}%</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Advanced settings */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
+                            <div>
+                              <label className="text-xs text-slate-500 mb-1 block">Selling Costs</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  value={sellingCostPercent}
+                                  onChange={(e) => setSellingCostPercent(Number(e.target.value))}
+                                  className="w-14 px-2 py-1 text-sm border border-slate-300 rounded"
+                                />
+                                <span className="text-xs text-slate-500">%</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-slate-500 mb-1 block">Buying Costs</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  value={newHomeClosingCostPercent}
+                                  onChange={(e) => setNewHomeClosingCostPercent(Number(e.target.value))}
+                                  className="w-14 px-2 py-1 text-sm border border-slate-300 rounded"
+                                />
+                                <span className="text-xs text-slate-500">%</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-slate-500 mb-1 block">Appreciation</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  value={annualAppreciation}
+                                  onChange={(e) => setAnnualAppreciation(Number(e.target.value))}
+                                  className="w-14 px-2 py-1 text-sm border border-slate-300 rounded"
+                                />
+                                <span className="text-xs text-slate-500">%/yr</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-slate-500 mb-1 block">Compare Over</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  value={yearsToCompare}
+                                  onChange={(e) => setYearsToCompare(Number(e.target.value))}
+                                  className="w-14 px-2 py-1 text-sm border border-slate-300 rounded"
+                                />
+                                <span className="text-xs text-slate-500">years</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Comparison Results */}
+                        {renovateVsSellCalc && newHomePurchasePrice && (
+                          <div className="space-y-4">
+                            {/* Side by Side Comparison */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Renovate Scenario */}
+                              <div className={`bg-white rounded-xl p-5 border-2 ${renovateVsSellCalc.recommendation === 'renovate' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                  <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <span>🔨</span> Renovate & Stay
+                                  </h4>
+                                  {renovateVsSellCalc.recommendation === 'renovate' && (
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">Better Option</span>
+                                  )}
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">Renovation Cost</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.renovationCost)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">Value Added</span>
+                                    <span className="font-medium text-emerald-600">+{formatCurrency(renovateVsSellCalc.valueAdd)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">New Home Value</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.renovatedHomeValue)}</span>
+                                  </div>
+                                  <div className="flex justify-between pt-2 border-t border-slate-100">
+                                    <span className="text-slate-600">{yearsToCompare}-Year Home Value</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.renovateFutureValue)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">{yearsToCompare}-Year Equity</span>
+                                    <span className="font-bold text-emerald-600">{formatCurrency(renovateVsSellCalc.renovateFutureEquity)}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Sell Scenario */}
+                              <div className={`bg-white rounded-xl p-5 border-2 ${renovateVsSellCalc.recommendation === 'sell' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                  <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <span>🚚</span> Sell & Move
+                                  </h4>
+                                  {renovateVsSellCalc.recommendation === 'sell' && (
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">Better Option</span>
+                                  )}
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">Sale Proceeds (after costs)</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.saleProceeds)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">Down Payment Needed</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.newHomeDownPayment)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">Cash {renovateVsSellCalc.cashNeededToMove >= 0 ? 'Out of Pocket' : 'Back to You'}</span>
+                                    <span className={`font-medium ${renovateVsSellCalc.cashNeededToMove >= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                      {renovateVsSellCalc.cashNeededToMove >= 0 ? '-' : '+'}{formatCurrency(Math.abs(renovateVsSellCalc.cashNeededToMove))}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between pt-2 border-t border-slate-100">
+                                    <span className="text-slate-600">{yearsToCompare}-Year Home Value</span>
+                                    <span className="font-medium text-slate-800">{formatCurrency(renovateVsSellCalc.newHomeFutureValue)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">{yearsToCompare}-Year Equity</span>
+                                    <span className="font-bold text-emerald-600">{formatCurrency(renovateVsSellCalc.sellFutureEquity)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bottom Line */}
+                            <div className={`p-4 rounded-xl ${
+                              renovateVsSellCalc.recommendation === 'renovate' 
+                                ? 'bg-emerald-50 border border-emerald-200' 
+                                : renovateVsSellCalc.recommendation === 'sell'
+                                  ? 'bg-blue-50 border border-blue-200'
+                                  : 'bg-slate-50 border border-slate-200'
+                            }`}>
+                              <p className="text-sm">
+                                {renovateVsSellCalc.recommendation === 'renovate' ? (
+                                  <><span className="font-bold text-emerald-700">🏆 Renovating looks better:</span> <span className="text-emerald-600">Over {yearsToCompare} years, staying and renovating could leave you {formatCurrency(Math.abs(renovateVsSellCalc.wealthDifference))} ahead compared to moving.</span></>
+                                ) : renovateVsSellCalc.recommendation === 'sell' ? (
+                                  <><span className="font-bold text-blue-700">🏆 Moving might make sense:</span> <span className="text-blue-600">Over {yearsToCompare} years, selling and buying could leave you {formatCurrency(Math.abs(renovateVsSellCalc.wealthDifference))} ahead compared to renovating.</span></>
+                                ) : (
+                                  <><span className="font-bold text-slate-700">⚖️ It's close:</span> <span className="text-slate-600">The financial difference is small (within $5,000). Your decision might come down to lifestyle preferences, neighborhood, and whether you want to deal with construction.</span></>
+                                )}
+                              </p>
+                            </div>
+
+                            <p className="text-xs text-slate-400">* This is a simplified comparison. Actual results depend on market conditions, mortgage rates, maintenance costs, and many other factors. Consult a financial advisor for personalized advice.</p>
+                          </div>
+                        )}
+
+                        {!newHomePurchasePrice && (
+                          <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
+                            <p className="text-slate-600">👆 Enter a new home purchase price above to see the comparison</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </section>
+
               {/* Input Section */}
               <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6" aria-label="Loan parameters">
                 <h2 className="sr-only">Enter Your Loan Details</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {/* Project Cost */}
                   <div>
-                    <label htmlFor="projectCost" className="text-sm font-semibold text-slate-700 mb-2 flex items-center">Project Cost</label>
+                    <label htmlFor="projectCost" className="text-sm font-semibold text-slate-700 mb-2 flex items-center">
+                      Project Cost
+                      {roiSummary && <span className="ml-2 text-xs text-emerald-600 font-normal">(from ROI calculator)</span>}
+                    </label>
                     <div className="relative mt-2">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                       <input id="projectCost" type="number" value={projectCost} onChange={(e) => setProjectCost(Math.max(0, Number(e.target.value)))} className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-lg font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" aria-describedby="projectCostHelp" />
