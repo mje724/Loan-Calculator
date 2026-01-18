@@ -428,12 +428,13 @@
         }
       }, [roiSummary]);
       
+      // Updated rates based on January 2026 Bankrate/Curinos data
       const getDefaultRates = (score) => {
         switch(score) {
-          case 'excellent': return { unsecuredAPR: 12.99, helocAPR: 7.5 };
-          case 'good': return { unsecuredAPR: 14.99, helocAPR: 8.5 };
-          case 'fair': return { unsecuredAPR: 18.99, helocAPR: 9.5 };
-          default: return { unsecuredAPR: 14.99, helocAPR: 8.5 };
+          case 'excellent': return { unsecuredAPR: 11.49, helocAPR: 7.25 }; // 740+ credit
+          case 'good': return { unsecuredAPR: 14.49, helocAPR: 8.25 };     // 670-739
+          case 'fair': return { unsecuredAPR: 21.49, helocAPR: 9.75 };     // 580-669
+          default: return { unsecuredAPR: 14.49, helocAPR: 8.25 };
         }
       };
       
@@ -628,6 +629,61 @@
           monthlyDifference: newHomeMonthlyPayment - renovateMonthlyPayment
         };
       }, [homeValue, mortgageBalance, newHomePurchasePrice, newHomeDownPaymentPercent, sellingCostPercent, newHomeClosingCostPercent, annualAppreciation, yearsToCompare, roiSummary, projectCost, helocAPR, helocTerm, calculations]);
+
+      // Smart Summary - ties all calculators together
+      const smartSummary = useMemo(() => {
+        if (!calculations) return null;
+        
+        const roi = roiSummary ? roiSummary.blendedROI : 70; // Default 70% if no projects selected
+        const valueAdd = roiSummary ? roiSummary.avgValueAdd : projectCost * 0.7;
+        const totalInterestHELOC = calculations.heloc.interest;
+        const totalInterestUnsecured = calculations.unsecured.interest;
+        const monthlyHELOC = calculations.heloc.monthly;
+        const monthlyUnsecured = calculations.unsecured.monthly;
+        
+        // True cost after value add
+        const netCostHELOC = projectCost + totalInterestHELOC - valueAdd;
+        const netCostUnsecured = projectCost + totalInterestUnsecured - valueAdd;
+        
+        // Monthly cost accounting for value added (amortized over loan term)
+        const monthlyValueAdd = valueAdd / (helocTerm * 12);
+        const trueMonthlyHELOC = monthlyHELOC - monthlyValueAdd;
+        const trueMonthlyUnsecured = monthlyUnsecured - monthlyValueAdd;
+        
+        // Is financing worth it? Compare ROI to interest rate
+        const roiDecimal = roi / 100;
+        const helocRateDecimal = helocAPR / 100;
+        const unsecuredRateDecimal = unsecuredAPR / 100;
+        
+        const financingVerdict = roiDecimal > helocRateDecimal ? 'good-investment' : 
+                                 roiDecimal > unsecuredRateDecimal * 0.5 ? 'consider-carefully' : 'pay-cash';
+        
+        // Break-even calculation: when does value add cover financing costs?
+        // Monthly: when cumulative value > cumulative payments
+        const monthsToBreakEvenHELOC = totalInterestHELOC > 0 ? Math.ceil((projectCost - valueAdd + totalInterestHELOC) / monthlyHELOC) : helocTerm * 12;
+        const yearsToBreakEvenHELOC = (monthsToBreakEvenHELOC / 12).toFixed(1);
+        
+        // Wealth impact over 5 years (simplified)
+        const appreciationRate = 0.03; // 3% annual home appreciation
+        const futureValueAdd = valueAdd * Math.pow(1 + appreciationRate, 5);
+        const wealthGainHELOC = futureValueAdd - (projectCost + totalInterestHELOC);
+        const wealthGainUnsecured = futureValueAdd - (projectCost + totalInterestUnsecured);
+        
+        return {
+          roi,
+          valueAdd,
+          netCostHELOC,
+          netCostUnsecured,
+          trueMonthlyHELOC,
+          trueMonthlyUnsecured,
+          financingVerdict,
+          yearsToBreakEvenHELOC,
+          wealthGainHELOC,
+          wealthGainUnsecured,
+          totalSavingsHELOC: totalInterestUnsecured - totalInterestHELOC + calculations.heloc.taxSavings,
+          bestOption: netCostHELOC < netCostUnsecured ? 'heloc' : 'unsecured'
+        };
+      }, [calculations, roiSummary, projectCost, helocAPR, unsecuredAPR, helocTerm]);
 
       const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
       const formatCurrencyDecimals = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
@@ -1304,6 +1360,22 @@
                       <span className="text-slate-700 font-medium">Total Cost</span>
                       <span className="font-bold text-slate-800">{formatCurrency(calculations.unsecured.totalPaid)}</span>
                     </div>
+                    {roiSummary && smartSummary && (
+                      <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100 bg-emerald-50 -mx-6 px-6 py-2 -mb-6 rounded-b-2xl">
+                        <span className="text-emerald-700 font-medium flex items-center gap-1">
+                          Net Cost (after ROI)
+                          <InfoButton title="Net Cost After Value Add">
+                            <p>This accounts for the value your renovation adds to your home.</p>
+                            <p className="mt-2"><strong>Calculation:</strong></p>
+                            <p className="text-xs">Total Cost: {formatCurrency(calculations.unsecured.totalPaid)}<br/>- Value Added: {formatCurrency(smartSummary.valueAdd)}<br/>= Net Cost: {formatCurrency(smartSummary.netCostUnsecured)}</p>
+                          </InfoButton>
+                        </span>
+                        <span className={`font-bold ${smartSummary.netCostUnsecured <= 0 ? 'text-emerald-600' : 'text-emerald-700'}`}>
+                          {smartSummary.netCostUnsecured <= 0 ? '+' : ''}{formatCurrency(Math.abs(smartSummary.netCostUnsecured))}
+                          {smartSummary.netCostUnsecured <= 0 && <span className="text-xs ml-1">gain!</span>}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </article>
 
@@ -1418,6 +1490,22 @@
                       <span className="text-slate-700 font-medium">Total Cost</span>
                       <span className="font-bold text-slate-800">{formatCurrency(calculations.heloc.totalPaid)}</span>
                     </div>
+                    {roiSummary && smartSummary && (
+                      <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100 bg-emerald-50 -mx-6 px-6 py-2 -mb-6 rounded-b-2xl">
+                        <span className="text-emerald-700 font-medium flex items-center gap-1">
+                          Net Cost (after ROI)
+                          <InfoButton title="Net Cost After Value Add">
+                            <p>This accounts for the value your renovation adds to your home.</p>
+                            <p className="mt-2"><strong>Calculation:</strong></p>
+                            <p className="text-xs">Total Cost: {formatCurrency(calculations.heloc.totalPaid)}<br/>- Value Added: {formatCurrency(smartSummary.valueAdd)}<br/>= Net Cost: {formatCurrency(smartSummary.netCostHELOC)}</p>
+                          </InfoButton>
+                        </span>
+                        <span className={`font-bold ${smartSummary.netCostHELOC <= 0 ? 'text-emerald-600' : 'text-emerald-700'}`}>
+                          {smartSummary.netCostHELOC <= 0 ? '+' : ''}{formatCurrency(Math.abs(smartSummary.netCostHELOC))}
+                          {smartSummary.netCostHELOC <= 0 && <span className="text-xs ml-1">gain!</span>}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </article>
               </section>
@@ -1470,6 +1558,82 @@
                   </div>
                 </div>
               </section>
+
+              {/* Smart Summary - Ties Everything Together */}
+              {smartSummary && roiSummary && (
+                <section className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl shadow-sm border-2 border-emerald-300 p-6 sm:p-8 mb-6">
+                  <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span>🎯</span> Your Complete Picture
+                  </h2>
+                  
+                  {/* Main Insight */}
+                  <div className="bg-white rounded-xl p-5 mb-4 border border-emerald-200">
+                    <p className="text-slate-700 leading-relaxed">
+                      You're planning <strong>{formatCurrency(projectCost)}</strong> in renovations with a blended <strong>{smartSummary.roi.toFixed(0)}% ROI</strong>. 
+                      {smartSummary.bestOption === 'heloc' ? (
+                        <> Financing with a HELOC at <strong>{formatCurrencyDecimals(calculations.heloc.monthly)}/mo</strong>, you'll add ~<strong>{formatCurrency(smartSummary.valueAdd)}</strong> in home value. </>
+                      ) : (
+                        <> With an unsecured loan at <strong>{formatCurrencyDecimals(calculations.unsecured.monthly)}/mo</strong>, you'll add ~<strong>{formatCurrency(smartSummary.valueAdd)}</strong> in home value. </>
+                      )}
+                      <span className="font-semibold text-emerald-700">Net cost after value-add: {formatCurrency(Math.max(0, smartSummary.bestOption === 'heloc' ? smartSummary.netCostHELOC : smartSummary.netCostUnsecured))}</span>
+                    </p>
+                  </div>
+
+                  {/* Key Metrics Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                    <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-1">True Monthly Cost*</p>
+                      <p className="text-lg font-bold text-emerald-600">{formatCurrency(Math.max(0, smartSummary.bestOption === 'heloc' ? smartSummary.trueMonthlyHELOC : smartSummary.trueMonthlyUnsecured))}</p>
+                      <p className="text-xs text-slate-400">after value add</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-1">HELOC Savings</p>
+                      <p className="text-lg font-bold text-blue-600">{formatCurrency(smartSummary.totalSavingsHELOC)}</p>
+                      <p className="text-xs text-slate-400">vs unsecured</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-1">5-Year Wealth Impact</p>
+                      <p className={`text-lg font-bold ${smartSummary.wealthGainHELOC > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {smartSummary.wealthGainHELOC > 0 ? '+' : ''}{formatCurrency(smartSummary.wealthGainHELOC)}
+                      </p>
+                      <p className="text-xs text-slate-400">w/ HELOC + appreciation</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-1">ROI vs Interest</p>
+                      <p className={`text-lg font-bold ${smartSummary.roi > helocAPR ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {smartSummary.roi > helocAPR ? '✓ Good' : '⚠️ Watch'}
+                      </p>
+                      <p className="text-xs text-slate-400">{smartSummary.roi.toFixed(0)}% vs {helocAPR}%</p>
+                    </div>
+                  </div>
+
+                  {/* Financing Verdict */}
+                  <div className={`p-4 rounded-lg ${
+                    smartSummary.financingVerdict === 'good-investment' ? 'bg-emerald-100 border border-emerald-300' :
+                    smartSummary.financingVerdict === 'consider-carefully' ? 'bg-amber-100 border border-amber-300' :
+                    'bg-red-100 border border-red-300'
+                  }`}>
+                    {smartSummary.financingVerdict === 'good-investment' ? (
+                      <p className="text-sm text-emerald-800">
+                        <strong>✅ Smart to Finance:</strong> Your project's ROI ({smartSummary.roi.toFixed(0)}%) exceeds the HELOC rate ({helocAPR}%). 
+                        You're essentially borrowing cheap money to create value. The renovation should "pay for itself" through increased home value.
+                      </p>
+                    ) : smartSummary.financingVerdict === 'consider-carefully' ? (
+                      <p className="text-sm text-amber-800">
+                        <strong>⚠️ Consider Carefully:</strong> Your ROI ({smartSummary.roi.toFixed(0)}%) is close to your borrowing cost. 
+                        This could still make sense if you plan to stay long-term (5+ years) or if these are necessary repairs. Just don't expect to profit at sale.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-red-800">
+                        <strong>💡 Consider Paying Cash:</strong> Your project's ROI ({smartSummary.roi.toFixed(0)}%) is well below borrowing costs. 
+                        If you have the savings, paying cash avoids interest. If you must finance, keep the term short to minimize interest paid.
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-slate-400 mt-3">*True monthly cost = payment minus monthly value added. Assumes 3% annual home appreciation. For illustration only.</p>
+                </section>
+              )}
 
               {/* Recommendation Box */}
               <section className={`rounded-2xl p-6 sm:p-8 ${recommendation.highlight === 'unsecured' ? 'bg-amber-50 border-2 border-amber-200' : recommendation.highlight === 'heloc' ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-100 border-2 border-slate-200'}`} aria-label="Recommendation">
