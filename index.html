@@ -85,11 +85,18 @@
         setInteractionCount(prev => prev + 1);
       };
 
+      // Show lead form when user scrolls past comparison cards
       useEffect(() => {
-        if (interactionCount >= 3 && !leadSubmitted) {
-          setShowLeadForm(true);
-        }
-      }, [interactionCount, leadSubmitted]);
+        const handleScroll = () => {
+          if (leadSubmitted || showLeadForm) return;
+          const scrollPercent = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+          if (scrollPercent > 0.6) {
+            setShowLeadForm(true);
+          }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, [leadSubmitted, showLeadForm]);
 
       const handleLeadSubmit = async (e) => {
         e.preventDefault();
