@@ -164,52 +164,145 @@
       const [showRenovateVsSell, setShowRenovateVsSell] = useState(false);
       const [roiZipCode, setRoiZipCode] = useState('');
       
-      // Regional ROI adjustments based on Cost vs Value data
-      // Pacific and West South Central are highest, East South Central lowest
-      const getRegionFromZip = (zip) => {
+      // Weather/climate zones based on ZIP code
+      const getClimateZone = (zip) => {
         if (!zip || zip.length < 3) return null;
         const prefix = parseInt(zip.substring(0, 3));
         
-        // Pacific: CA, OR, WA, AK, HI (900-999, 995-999, 980-994, 967-969, 970-979)
-        if ((prefix >= 900 && prefix <= 961) || (prefix >= 967 && prefix <= 994) || prefix >= 995) {
-          return { name: 'Pacific', adjustment: 1.12, description: 'Highest ROI region in the country' };
+        // Hurricane Zone: FL, Gulf Coast TX, LA, coastal GA/SC/NC
+        if ((prefix >= 320 && prefix <= 349) || // FL
+            (prefix >= 700 && prefix <= 715) || // LA
+            (prefix >= 770 && prefix <= 785) || // Gulf TX
+            (prefix >= 290 && prefix <= 299) || // SC coast
+            (prefix >= 270 && prefix <= 289 && prefix <= 279)) { // NC coast
+          return {
+            name: 'Hurricane Zone',
+            icon: '🌀',
+            color: 'orange',
+            priorities: ['roofAsphalt', 'garageDoor', 'windowsVinyl', 'sidingFiberCement'],
+            insights: [
+              { text: 'Backup generators show 100-139% ROI in hurricane-prone areas', icon: '⚡' },
+              { text: 'Impact-rated garage doors and windows are highly valued by buyers', icon: '🚗' },
+              { text: 'Metal roofing and fiber cement siding resist storm damage', icon: '🏠' }
+            ]
+          };
         }
-        // West South Central: TX, OK, AR, LA (700-799, 730-749, 716-729, 700-715)
-        if (prefix >= 700 && prefix <= 799) {
-          return { name: 'West South Central', adjustment: 1.08, description: 'Strong housing market, above-average returns' };
+        // Snow Belt: Upper Midwest, New England, Upstate NY
+        if ((prefix >= 430 && prefix <= 499) || // MI, OH, IN
+            (prefix >= 530 && prefix <= 549) || // WI
+            (prefix >= 550 && prefix <= 567) || // MN
+            (prefix >= 10 && prefix <= 69) ||   // New England
+            (prefix >= 100 && prefix <= 149)) { // Upstate NY
+          return {
+            name: 'Snow Belt',
+            icon: '❄️',
+            color: 'blue',
+            priorities: ['roofAsphalt', 'windowsVinyl', 'hvacReplace', 'sidingVinyl'],
+            insights: [
+              { text: 'Insulated garage doors and windows significantly reduce heating costs', icon: '🪟' },
+              { text: 'HVAC efficiency upgrades have higher impact in cold climates', icon: '❄️' },
+              { text: 'Ice dam prevention (roofing, insulation) protects long-term value', icon: '🏠' }
+            ]
+          };
         }
-        // New England: CT, MA, ME, NH, RI, VT (010-069)
-        if (prefix >= 10 && prefix <= 69) {
-          return { name: 'New England', adjustment: 1.05, description: 'Stable market with good returns' };
+        // Hot/Arid: AZ, NV, desert CA, NM, West TX
+        if ((prefix >= 850 && prefix <= 865) || // AZ
+            (prefix >= 889 && prefix <= 898) || // NV
+            (prefix >= 900 && prefix <= 935) || // SoCal
+            (prefix >= 870 && prefix <= 884) || // NM
+            (prefix >= 790 && prefix <= 799)) { // West TX
+          return {
+            name: 'Hot & Arid',
+            icon: '🌵',
+            color: 'amber',
+            priorities: ['windowsVinyl', 'hvacReplace', 'roofAsphalt'],
+            insights: [
+              { text: 'Energy-efficient windows and HVAC show strong ROI with high cooling costs', icon: '❄️' },
+              { text: 'Cool/reflective roofing materials can reduce energy bills 10-25%', icon: '🏠' },
+              { text: 'Shade structures and exterior improvements valued for outdoor living', icon: '🌳' }
+            ]
+          };
         }
-        // South Atlantic: DE, FL, GA, MD, NC, SC, VA, WV, DC (190-199, 320-349, 300-319, 206-219, 270-289, 290-299, 220-246, 247-269, 200-205)
-        if ((prefix >= 190 && prefix <= 199) || (prefix >= 300 && prefix <= 349) || (prefix >= 200 && prefix <= 289)) {
-          return { name: 'South Atlantic', adjustment: 1.02, description: 'Growing market, solid returns' };
+        // High Humidity: Southeast (non-coastal FL, GA, AL, MS, SC interior)
+        if ((prefix >= 300 && prefix <= 319) || // GA
+            (prefix >= 350 && prefix <= 369) || // AL
+            (prefix >= 386 && prefix <= 397) || // MS
+            (prefix >= 370 && prefix <= 385)) { // TN
+          return {
+            name: 'High Humidity',
+            icon: '💧',
+            color: 'teal',
+            priorities: ['hvacReplace', 'sidingFiberCement', 'roofAsphalt', 'bathMidrange'],
+            insights: [
+              { text: 'Moisture-resistant siding (fiber cement, vinyl) prevents rot and mold', icon: '🏗️' },
+              { text: 'HVAC with dehumidification features highly valued', icon: '❄️' },
+              { text: 'Bathroom ventilation upgrades protect against moisture damage', icon: '🚿' }
+            ]
+          };
         }
-        // Middle Atlantic: NJ, NY, PA (070-089, 100-149, 150-196)
-        if ((prefix >= 70 && prefix <= 89) || (prefix >= 100 && prefix <= 196)) {
-          return { name: 'Middle Atlantic', adjustment: 1.00, description: 'Average returns, close to national baseline' };
+        // Earthquake Zone: CA, Pacific NW
+        if ((prefix >= 936 && prefix <= 966) || // NorCal
+            (prefix >= 970 && prefix <= 994)) { // OR, WA
+          return {
+            name: 'Seismic Zone',
+            icon: '🌎',
+            color: 'purple',
+            priorities: ['foundation', 'roofAsphalt', 'windowsVinyl'],
+            insights: [
+              { text: 'Foundation bolting and retrofitting highly valued for safety', icon: '🧱' },
+              { text: 'Flexible gas lines and water heater strapping are smart additions', icon: '🔧' },
+              { text: 'Buyers pay premium for earthquake-retrofitted homes', icon: '🏠' }
+            ]
+          };
         }
-        // Mountain: AZ, CO, ID, MT, NV, NM, UT, WY (850-879, 800-816, 832-838, 590-599, 889-898, 870-884, 840-847, 820-831)
-        if ((prefix >= 800 && prefix <= 884) || (prefix >= 590 && prefix <= 599) || (prefix >= 889 && prefix <= 898)) {
-          return { name: 'Mountain', adjustment: 0.95, description: 'Below average this year, but recovering' };
+        // Tornado Alley: OK, KS, NE, parts of TX
+        if ((prefix >= 730 && prefix <= 749) || // OK
+            (prefix >= 660 && prefix <= 679) || // KS
+            (prefix >= 680 && prefix <= 693) || // NE
+            (prefix >= 750 && prefix <= 769)) { // North TX
+          return {
+            name: 'Tornado Alley',
+            icon: '🌪️',
+            color: 'slate',
+            priorities: ['garageDoor', 'roofAsphalt', 'sidingFiberCement'],
+            insights: [
+              { text: 'Reinforced garage doors are critical — often first point of failure', icon: '🚗' },
+              { text: 'Impact-resistant roofing can lower insurance premiums', icon: '🏠' },
+              { text: 'Safe rooms/storm shelters increasingly valued by buyers', icon: '🛡️' }
+            ]
+          };
         }
-        // West North Central: IA, KS, MN, MO, ND, NE, SD (500-528, 660-679, 550-567, 630-658, 580-588, 680-693, 570-577)
-        if ((prefix >= 500 && prefix <= 567) || (prefix >= 570 && prefix <= 588) || (prefix >= 630 && prefix <= 693)) {
-          return { name: 'West North Central', adjustment: 0.92, description: 'Lower cost market, moderate returns' };
+        // Wildfire Zone: CA foothills, CO, Mountain West
+        if ((prefix >= 800 && prefix <= 816) || // CO
+            (prefix >= 820 && prefix <= 831) || // WY
+            (prefix >= 832 && prefix <= 838)) { // ID
+          return {
+            name: 'Wildfire Risk',
+            icon: '🔥',
+            color: 'red',
+            priorities: ['roofAsphalt', 'sidingFiberCement', 'windowsVinyl', 'deckComposite'],
+            insights: [
+              { text: 'Fire-resistant roofing (Class A) and siding are increasingly required', icon: '🏠' },
+              { text: 'Composite decking and hardscaping over wood reduces fire risk', icon: '🌳' },
+              { text: 'Defensible space improvements can lower insurance costs significantly', icon: '🛡️' }
+            ]
+          };
         }
-        // East North Central: IL, IN, MI, OH, WI (600-629, 460-479, 480-499, 430-459, 530-549)
-        if ((prefix >= 430 && prefix <= 499) || (prefix >= 530 && prefix <= 549) || (prefix >= 600 && prefix <= 629)) {
-          return { name: 'East North Central', adjustment: 0.90, description: 'Lower returns than coastal markets' };
-        }
-        // East South Central: AL, KY, MS, TN (350-369, 400-427, 386-397, 370-385)
-        if ((prefix >= 350 && prefix <= 427)) {
-          return { name: 'East South Central', adjustment: 0.85, description: 'Lowest ROI region currently' };
-        }
-        return null;
+        // Temperate/Mild: Mid-Atlantic, parts of Midwest
+        return {
+          name: 'Temperate',
+          icon: '🌤️',
+          color: 'green',
+          priorities: ['garageDoor', 'entryDoorSteel', 'kitchenMinor'],
+          insights: [
+            { text: 'Curb appeal projects (doors, siding) show strongest ROI in moderate climates', icon: '🚗' },
+            { text: 'Focus on aesthetic upgrades — fewer weather-driven necessities', icon: '🎨' },
+            { text: 'Energy efficiency still matters but less urgent than extreme climates', icon: '💡' }
+          ]
+        };
       };
 
-      const currentRegion = getRegionFromZip(roiZipCode);
+      const climateZone = getClimateZone(roiZipCode);
       
       // Renovate vs Sell inputs
       const [newHomePurchasePrice, setNewHomePurchasePrice] = useState('');
@@ -286,9 +379,6 @@
         let totalValueMax = 0;
         let structuralCost = 0;
         let aestheticCost = 0;
-        
-        // Apply regional adjustment if ZIP provided
-        const regionalMultiplier = currentRegion ? currentRegion.adjustment : 1.0;
 
         selected.forEach(([key, data]) => {
           const cost = Number(data.cost);
@@ -307,8 +397,8 @@
           }
 
           if (projectInfo) {
-            totalValueMin += cost * (projectInfo.roiMin / 100) * regionalMultiplier;
-            totalValueMax += cost * (projectInfo.roiMax / 100) * regionalMultiplier;
+            totalValueMin += cost * (projectInfo.roiMin / 100);
+            totalValueMax += cost * (projectInfo.roiMax / 100);
           }
         });
 
@@ -327,10 +417,9 @@
           structuralPercent,
           netCostMin: totalCost - totalValueMax,
           netCostMax: totalCost - totalValueMin,
-          projectCount: selected.length,
-          regionalAdjustment: regionalMultiplier
+          projectCount: selected.length
         };
-      }, [selectedProjects, currentRegion]);
+      }, [selectedProjects]);
 
       // Sync total project cost with ROI calculator
       useEffect(() => {
@@ -595,9 +684,9 @@
 
                 {showROICalculator && (
                   <div className="mt-6 pt-6 border-t border-blue-200">
-                    {/* ZIP Code for Regional Adjustment */}
+                    {/* ZIP Code for Climate-Based Recommendations */}
                     <div className="mb-6 p-4 bg-white rounded-xl border border-slate-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">📍</span>
                           <label className="text-sm font-medium text-slate-700">Your ZIP Code</label>
@@ -610,22 +699,29 @@
                           className="w-28 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           maxLength={5}
                         />
-                        {currentRegion && (
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${currentRegion.adjustment >= 1.05 ? 'bg-emerald-100 text-emerald-700' : currentRegion.adjustment >= 0.95 ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {currentRegion.name} Region
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {currentRegion.adjustment >= 1 ? '+' : ''}{((currentRegion.adjustment - 1) * 100).toFixed(0)}% vs national avg
-                            </span>
-                          </div>
+                        {climateZone && (
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${climateZone.color}-100 text-${climateZone.color}-700`} style={{backgroundColor: climateZone.color === 'orange' ? '#ffedd5' : climateZone.color === 'blue' ? '#dbeafe' : climateZone.color === 'amber' ? '#fef3c7' : climateZone.color === 'teal' ? '#ccfbf1' : climateZone.color === 'purple' ? '#f3e8ff' : climateZone.color === 'slate' ? '#f1f5f9' : climateZone.color === 'red' ? '#fee2e2' : '#dcfce7', color: climateZone.color === 'orange' ? '#c2410c' : climateZone.color === 'blue' ? '#1d4ed8' : climateZone.color === 'amber' ? '#b45309' : climateZone.color === 'teal' ? '#0f766e' : climateZone.color === 'purple' ? '#7c3aed' : climateZone.color === 'slate' ? '#475569' : climateZone.color === 'red' ? '#dc2626' : '#16a34a'}}>
+                            {climateZone.icon} {climateZone.name}
+                          </span>
                         )}
                       </div>
-                      {currentRegion && (
-                        <p className="text-xs text-slate-500 mt-2">{currentRegion.description}</p>
+                      
+                      {climateZone && (
+                        <div className="mt-3 p-3 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-semibold text-slate-700 mb-2">🎯 Priority projects for your area:</p>
+                          <div className="space-y-1.5">
+                            {climateZone.insights.map((insight, i) => (
+                              <p key={i} className="text-xs text-slate-600 flex items-start gap-2">
+                                <span>{insight.icon}</span>
+                                <span>{insight.text}</span>
+                              </p>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      {!currentRegion && roiZipCode.length === 0 && (
-                        <p className="text-xs text-slate-400 mt-2">Enter your ZIP to see region-adjusted ROI estimates</p>
+                      
+                      {!climateZone && roiZipCode.length === 0 && (
+                        <p className="text-xs text-slate-400">Enter your ZIP to see climate-specific project recommendations</p>
                       )}
                     </div>
 
@@ -709,8 +805,7 @@
 
                     {/* Source note */}
                     <p className="text-xs text-slate-400 mb-4">
-                      ROI data from the <a href="https://www.remodeling.hw.net/cost-vs-value" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">2025 Cost vs. Value Report</a> by Zonda/Remodeling Magazine.
-                      {currentRegion ? ` Values adjusted for ${currentRegion.name} region.` : ' Enter your ZIP code above for region-specific estimates.'}
+                      ROI data from the <a href="https://www.remodeling.hw.net/cost-vs-value" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">2025 Cost vs. Value Report</a> by Zonda/Remodeling Magazine. National averages shown — actual ROI varies by region.
                     </p>
 
                     {/* ROI Summary */}
