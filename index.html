@@ -555,10 +555,6 @@
                               <span>{project.icon}</span>
                               <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
                               <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
-                              <InfoButton title={`${project.name} ROI`}>
-                                <p>{project.tip}</p>
-                                <p className="mt-2 text-xs text-slate-400">Source: 2025 Cost vs. Value Report</p>
-                              </InfoButton>
                             </div>
                             {selectedProjects[key] && (
                               <div className="mt-2 relative">
@@ -598,10 +594,6 @@
                               <span>{project.icon}</span>
                               <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
                               <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
-                              <InfoButton title={`${project.name} ROI`}>
-                                <p>{project.tip}</p>
-                                <p className="mt-2 text-xs text-slate-400">Source: 2025 Cost vs. Value Report</p>
-                              </InfoButton>
                             </div>
                             {selectedProjects[key] && (
                               <div className="mt-2 relative">
@@ -620,6 +612,9 @@
                         ))}
                       </div>
                     </div>
+
+                    {/* Source note */}
+                    <p className="text-xs text-slate-400 mb-4">ROI data from the 2025 Cost vs. Value Report by Zonda/Remodeling Magazine. Actual returns vary by location and market conditions.</p>
 
                     {/* ROI Summary */}
                     {roiSummary && (
@@ -675,8 +670,6 @@
                             )}
                           </p>
                         </div>
-
-                        <p className="text-xs text-slate-400 mt-3">* ROI estimates based on national averages from Remodeling Magazine's Cost vs. Value Report. Actual returns vary by location and market conditions.</p>
                       </div>
                     )}
                   </div>
