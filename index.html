@@ -278,6 +278,11 @@
       return (
         <div className="min-h-screen bg-slate-50 py-8 px-4 sm:py-12 sm:px-6" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
           <div className="max-w-4xl mx-auto">
+            {/* Top Navigation */}
+            <nav className="flex justify-end mb-4">
+              <a href="/about" className="text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">About Us</a>
+            </nav>
+
             {/* Header with SEO H1 */}
             <header className="text-center mb-8 sm:mb-12">
               <h1 className="text-3xl sm:text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
@@ -630,6 +635,7 @@
                   © {new Date().getFullYear()} Home Improvement Loan Calculator. All rights reserved.
                 </p>
                 <nav className="flex justify-center gap-6 text-sm">
+                  <a href="/about" className="text-slate-600 hover:text-emerald-600">About Us</a>
                   <a href="/privacy" className="text-slate-600 hover:text-emerald-600">Privacy Policy</a>
                 </nav>
               </div>
