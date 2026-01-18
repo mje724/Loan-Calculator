@@ -171,32 +171,32 @@
       const [annualAppreciation, setAnnualAppreciation] = useState(3);
       const [yearsToCompare, setYearsToCompare] = useState(5);
 
-      // Project types with ROI data
+      // Project types with ROI data (Source: 2025 Cost vs. Value Report)
       const projectTypes = {
         structural: {
           label: 'Structural / Code Compliant',
           description: 'Necessary work — often required for safety, insurance, or sale',
           items: {
-            roof: { name: 'Roof Replacement', roiMin: 60, roiMax: 65, icon: '🏠' },
-            hvac: { name: 'HVAC System', roiMin: 60, roiMax: 70, icon: '❄️' },
-            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡' },
-            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧' },
-            foundation: { name: 'Foundation Repair', roiMin: 75, roiMax: 85, icon: '🧱' },
-            windows: { name: 'Window Replacement', roiMin: 65, roiMax: 70, icon: '🪟' },
-            siding: { name: 'Siding Replacement', roiMin: 65, roiMax: 75, icon: '🏗️' }
+            roof: { name: 'Roof Replacement', roiMin: 55, roiMax: 65, icon: '🏠', tip: 'Asphalt shingle replacement. Metal roofing may have different ROI.' },
+            hvac: { name: 'HVAC System', roiMin: 50, roiMax: 66, icon: '❄️', tip: 'Heat pump conversions saw ROI drop from 104% to 66% in 2024 due to energy prices.' },
+            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡', tip: 'Essential for older homes. Required for many insurance policies.' },
+            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧', tip: 'Prevents costly water damage. High value for older homes with galvanized pipes.' },
+            foundation: { name: 'Foundation Repair', roiMin: 70, roiMax: 80, icon: '🧱', tip: 'Critical for sale — most buyers walk away from foundation issues.' },
+            windows: { name: 'Window Replacement', roiMin: 57, roiMax: 68, icon: '🪟', tip: 'Vinyl windows ~68% ROI, wood windows ~57% ROI.' },
+            siding: { name: 'Siding Replacement', roiMin: 68, roiMax: 86, icon: '🏗️', tip: 'Fiber cement siding ~86% ROI, vinyl siding ~68% ROI.' }
           }
         },
         aesthetic: {
           label: 'Aesthetic / Lifestyle',
           description: 'Value-add work — improves livability and appeal',
           items: {
-            kitchenMinor: { name: 'Kitchen Remodel (Minor)', roiMin: 75, roiMax: 80, icon: '🍳' },
-            kitchenMajor: { name: 'Kitchen Remodel (Major)', roiMin: 50, roiMax: 60, icon: '👨‍🍳' },
-            bathroom: { name: 'Bathroom Remodel', roiMin: 60, roiMax: 70, icon: '🚿' },
-            garageDoor: { name: 'Garage Door', roiMin: 90, roiMax: 100, icon: '🚗' },
-            flooring: { name: 'Flooring', roiMin: 70, roiMax: 80, icon: '🪵' },
-            deck: { name: 'Deck/Patio Addition', roiMin: 65, roiMax: 75, icon: '🌳' },
-            paint: { name: 'Interior Paint', roiMin: 100, roiMax: 150, icon: '🎨' }
+            kitchenMinor: { name: 'Kitchen Remodel (Minor)', roiMin: 96, roiMax: 113, icon: '🍳', tip: 'Cabinet refacing, new counters, updated appliances. Best interior ROI!' },
+            kitchenMajor: { name: 'Kitchen Remodel (Major)', roiMin: 38, roiMax: 51, icon: '👨‍🍳', tip: 'Full gut renovation with layout changes. Lower ROI but highest enjoyment.' },
+            bathroom: { name: 'Bathroom Remodel', roiMin: 61, roiMax: 80, icon: '🚿', tip: 'Midrange bath ~80% ROI, upscale bath ~61% ROI.' },
+            garageDoor: { name: 'Garage Door', roiMin: 194, roiMax: 268, icon: '🚗', tip: '#1 ROI project for 2 years running! Huge curb appeal impact.' },
+            flooring: { name: 'Flooring', roiMin: 70, roiMax: 80, icon: '🪵', tip: 'Hardwood and LVP both perform well. Avoid trendy patterns.' },
+            deck: { name: 'Deck/Patio Addition', roiMin: 60, roiMax: 75, icon: '🌳', tip: 'Wood deck ~75% ROI, composite deck ~60% ROI.' },
+            entryDoor: { name: 'Steel Entry Door', roiMin: 188, roiMax: 216, icon: '🚪', tip: '#2 ROI project — creates powerful first impression.' }
           }
         }
       };
@@ -554,7 +554,11 @@
                               />
                               <span>{project.icon}</span>
                               <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
-                              <span className="text-xs text-slate-500">{project.roiMin}-{project.roiMax}% ROI</span>
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
+                              <InfoButton title={`${project.name} ROI`}>
+                                <p>{project.tip}</p>
+                                <p className="mt-2 text-xs text-slate-400">Source: 2025 Cost vs. Value Report</p>
+                              </InfoButton>
                             </div>
                             {selectedProjects[key] && (
                               <div className="mt-2 relative">
@@ -593,7 +597,11 @@
                               />
                               <span>{project.icon}</span>
                               <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
-                              <span className="text-xs text-slate-500">{project.roiMin}-{project.roiMax}% ROI</span>
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
+                              <InfoButton title={`${project.name} ROI`}>
+                                <p>{project.tip}</p>
+                                <p className="mt-2 text-xs text-slate-400">Source: 2025 Cost vs. Value Report</p>
+                              </InfoButton>
                             </div>
                             {selectedProjects[key] && (
                               <div className="mt-2 relative">
@@ -739,7 +747,18 @@
                           {/* Advanced settings */}
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
                             <div>
-                              <label className="text-xs text-slate-500 mb-1 block">Selling Costs</label>
+                              <label className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                                Selling Costs
+                                <InfoButton title="Selling Costs">
+                                  <p>Typical costs when selling a home:</p>
+                                  <ul className="list-disc list-inside text-xs mt-1">
+                                    <li>Real estate agent fees: 5-6%</li>
+                                    <li>Closing costs: 1-3%</li>
+                                    <li>Repairs/staging: 1-2%</li>
+                                  </ul>
+                                  <p className="mt-2 text-xs text-slate-400">9% is a conservative estimate.</p>
+                                </InfoButton>
+                              </label>
                               <div className="flex items-center gap-1">
                                 <input
                                   type="number"
@@ -751,7 +770,19 @@
                               </div>
                             </div>
                             <div>
-                              <label className="text-xs text-slate-500 mb-1 block">Buying Costs</label>
+                              <label className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                                Buying Costs
+                                <InfoButton title="Buying Costs">
+                                  <p>Typical costs when buying a home:</p>
+                                  <ul className="list-disc list-inside text-xs mt-1">
+                                    <li>Loan origination: 0.5-1%</li>
+                                    <li>Title insurance: 0.5-1%</li>
+                                    <li>Appraisal, inspection: $500-1500</li>
+                                    <li>Escrow, recording fees: varies</li>
+                                  </ul>
+                                  <p className="mt-2 text-xs text-slate-400">3% is typical for most buyers.</p>
+                                </InfoButton>
+                              </label>
                               <div className="flex items-center gap-1">
                                 <input
                                   type="number"
@@ -763,7 +794,18 @@
                               </div>
                             </div>
                             <div>
-                              <label className="text-xs text-slate-500 mb-1 block">Appreciation</label>
+                              <label className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                                Appreciation
+                                <InfoButton title="Home Appreciation">
+                                  <p>Annual home value increase rate.</p>
+                                  <ul className="list-disc list-inside text-xs mt-1">
+                                    <li>Historical US avg: 3-4%/year</li>
+                                    <li>Hot markets: 5-10%/year</li>
+                                    <li>Slow markets: 1-2%/year</li>
+                                  </ul>
+                                  <p className="mt-2 text-xs text-slate-400">3% is a conservative long-term estimate.</p>
+                                </InfoButton>
+                              </label>
                               <div className="flex items-center gap-1">
                                 <input
                                   type="number"
