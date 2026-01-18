@@ -162,6 +162,54 @@
       const [selectedProjects, setSelectedProjects] = useState({});
       const [showROICalculator, setShowROICalculator] = useState(false);
       const [showRenovateVsSell, setShowRenovateVsSell] = useState(false);
+      const [roiZipCode, setRoiZipCode] = useState('');
+      
+      // Regional ROI adjustments based on Cost vs Value data
+      // Pacific and West South Central are highest, East South Central lowest
+      const getRegionFromZip = (zip) => {
+        if (!zip || zip.length < 3) return null;
+        const prefix = parseInt(zip.substring(0, 3));
+        
+        // Pacific: CA, OR, WA, AK, HI (900-999, 995-999, 980-994, 967-969, 970-979)
+        if ((prefix >= 900 && prefix <= 961) || (prefix >= 967 && prefix <= 994) || prefix >= 995) {
+          return { name: 'Pacific', adjustment: 1.12, description: 'Highest ROI region in the country' };
+        }
+        // West South Central: TX, OK, AR, LA (700-799, 730-749, 716-729, 700-715)
+        if (prefix >= 700 && prefix <= 799) {
+          return { name: 'West South Central', adjustment: 1.08, description: 'Strong housing market, above-average returns' };
+        }
+        // New England: CT, MA, ME, NH, RI, VT (010-069)
+        if (prefix >= 10 && prefix <= 69) {
+          return { name: 'New England', adjustment: 1.05, description: 'Stable market with good returns' };
+        }
+        // South Atlantic: DE, FL, GA, MD, NC, SC, VA, WV, DC (190-199, 320-349, 300-319, 206-219, 270-289, 290-299, 220-246, 247-269, 200-205)
+        if ((prefix >= 190 && prefix <= 199) || (prefix >= 300 && prefix <= 349) || (prefix >= 200 && prefix <= 289)) {
+          return { name: 'South Atlantic', adjustment: 1.02, description: 'Growing market, solid returns' };
+        }
+        // Middle Atlantic: NJ, NY, PA (070-089, 100-149, 150-196)
+        if ((prefix >= 70 && prefix <= 89) || (prefix >= 100 && prefix <= 196)) {
+          return { name: 'Middle Atlantic', adjustment: 1.00, description: 'Average returns, close to national baseline' };
+        }
+        // Mountain: AZ, CO, ID, MT, NV, NM, UT, WY (850-879, 800-816, 832-838, 590-599, 889-898, 870-884, 840-847, 820-831)
+        if ((prefix >= 800 && prefix <= 884) || (prefix >= 590 && prefix <= 599) || (prefix >= 889 && prefix <= 898)) {
+          return { name: 'Mountain', adjustment: 0.95, description: 'Below average this year, but recovering' };
+        }
+        // West North Central: IA, KS, MN, MO, ND, NE, SD (500-528, 660-679, 550-567, 630-658, 580-588, 680-693, 570-577)
+        if ((prefix >= 500 && prefix <= 567) || (prefix >= 570 && prefix <= 588) || (prefix >= 630 && prefix <= 693)) {
+          return { name: 'West North Central', adjustment: 0.92, description: 'Lower cost market, moderate returns' };
+        }
+        // East North Central: IL, IN, MI, OH, WI (600-629, 460-479, 480-499, 430-459, 530-549)
+        if ((prefix >= 430 && prefix <= 499) || (prefix >= 530 && prefix <= 549) || (prefix >= 600 && prefix <= 629)) {
+          return { name: 'East North Central', adjustment: 0.90, description: 'Lower returns than coastal markets' };
+        }
+        // East South Central: AL, KY, MS, TN (350-369, 400-427, 386-397, 370-385)
+        if ((prefix >= 350 && prefix <= 427)) {
+          return { name: 'East South Central', adjustment: 0.85, description: 'Lowest ROI region currently' };
+        }
+        return null;
+      };
+
+      const currentRegion = getRegionFromZip(roiZipCode);
       
       // Renovate vs Sell inputs
       const [newHomePurchasePrice, setNewHomePurchasePrice] = useState('');
@@ -238,6 +286,9 @@
         let totalValueMax = 0;
         let structuralCost = 0;
         let aestheticCost = 0;
+        
+        // Apply regional adjustment if ZIP provided
+        const regionalMultiplier = currentRegion ? currentRegion.adjustment : 1.0;
 
         selected.forEach(([key, data]) => {
           const cost = Number(data.cost);
@@ -256,8 +307,8 @@
           }
 
           if (projectInfo) {
-            totalValueMin += cost * (projectInfo.roiMin / 100);
-            totalValueMax += cost * (projectInfo.roiMax / 100);
+            totalValueMin += cost * (projectInfo.roiMin / 100) * regionalMultiplier;
+            totalValueMax += cost * (projectInfo.roiMax / 100) * regionalMultiplier;
           }
         });
 
@@ -276,9 +327,10 @@
           structuralPercent,
           netCostMin: totalCost - totalValueMax,
           netCostMax: totalCost - totalValueMin,
-          projectCount: selected.length
+          projectCount: selected.length,
+          regionalAdjustment: regionalMultiplier
         };
-      }, [selectedProjects]);
+      }, [selectedProjects, currentRegion]);
 
       // Sync total project cost with ROI calculator
       useEffect(() => {
@@ -543,6 +595,40 @@
 
                 {showROICalculator && (
                   <div className="mt-6 pt-6 border-t border-blue-200">
+                    {/* ZIP Code for Regional Adjustment */}
+                    <div className="mb-6 p-4 bg-white rounded-xl border border-slate-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">📍</span>
+                          <label className="text-sm font-medium text-slate-700">Your ZIP Code</label>
+                        </div>
+                        <input
+                          type="text"
+                          value={roiZipCode}
+                          onChange={(e) => setRoiZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                          placeholder="Enter ZIP"
+                          className="w-28 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          maxLength={5}
+                        />
+                        {currentRegion && (
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${currentRegion.adjustment >= 1.05 ? 'bg-emerald-100 text-emerald-700' : currentRegion.adjustment >= 0.95 ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {currentRegion.name} Region
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {currentRegion.adjustment >= 1 ? '+' : ''}{((currentRegion.adjustment - 1) * 100).toFixed(0)}% vs national avg
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {currentRegion && (
+                        <p className="text-xs text-slate-500 mt-2">{currentRegion.description}</p>
+                      )}
+                      {!currentRegion && roiZipCode.length === 0 && (
+                        <p className="text-xs text-slate-400 mt-2">Enter your ZIP to see region-adjusted ROI estimates</p>
+                      )}
+                    </div>
+
                     {/* Structural Projects */}
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
@@ -623,7 +709,8 @@
 
                     {/* Source note */}
                     <p className="text-xs text-slate-400 mb-4">
-                      ROI data from the <a href="https://www.remodeling.hw.net/cost-vs-value" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">2025 Cost vs. Value Report</a> by Zonda/Remodeling Magazine (updated annually). These are national averages — ROI varies by region, with coastal markets typically seeing higher returns.
+                      ROI data from the <a href="https://www.remodeling.hw.net/cost-vs-value" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">2025 Cost vs. Value Report</a> by Zonda/Remodeling Magazine.
+                      {currentRegion ? ` Values adjusted for ${currentRegion.name} region.` : ' Enter your ZIP code above for region-specific estimates.'}
                     </p>
 
                     {/* ROI Summary */}
