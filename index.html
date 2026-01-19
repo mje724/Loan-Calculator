@@ -3,96 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Primary SEO Meta Tags -->
-  <title>HELOC vs Personal Loan Calculator | Compare Home Improvement Financing Options</title>
-  <meta name="description" content="Free home improvement loan calculator. Compare HELOC vs unsecured personal loan side-by-side. See monthly payments, total interest, and get personalized recommendations for your project.">
-  <meta name="keywords" content="home improvement loan calculator, HELOC vs personal loan, home equity line of credit calculator, renovation loan comparison, unsecured loan calculator, home improvement financing, HELOC calculator, personal loan comparison">
-  <meta name="author" content="Home Improvement Loan Calculator">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://loan-calculator-ebon-two.vercel.app/">
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://loan-calculator-ebon-two.vercel.app/">
-  <meta property="og:title" content="HELOC vs Personal Loan Calculator | Compare Home Improvement Financing">
-  <meta property="og:description" content="Free calculator to compare HELOC vs personal loan for home improvements. See monthly payments, interest costs, and get personalized recommendations.">
-  <meta property="og:image" content="https://loan-calculator-ebon-two.vercel.app/og-image.png">
-  
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://loan-calculator-ebon-two.vercel.app/">
-  <meta name="twitter:title" content="HELOC vs Personal Loan Calculator | Compare Home Improvement Financing">
-  <meta name="twitter:description" content="Free calculator to compare HELOC vs personal loan for home improvements. See monthly payments, interest costs, and get personalized recommendations.">
-  
-  <!-- Schema.org structured data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Home Improvement Loan Calculator",
-    "description": "Compare HELOC vs personal loan for home improvement financing. Calculate monthly payments, total interest, and get personalized recommendations.",
-    "url": "https://loan-calculator-ebon-two.vercel.app/",
-    "applicationCategory": "FinanceApplication",
-    "operatingSystem": "Any",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "HELOC vs Personal Loan Comparison",
-      "Monthly Payment Calculator",
-      "Interest Cost Calculator",
-      "Credit Score Based Rates",
-      "Tax Savings Estimator"
-    ]
-  }
-  </script>
-  
-  <!-- FAQ Schema for SEO -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is the difference between a HELOC and a personal loan?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "A HELOC (Home Equity Line of Credit) is secured by your home and typically offers lower interest rates but puts your home at risk. A personal loan is unsecured, has fixed payments, and faster approval but usually has higher interest rates."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Which is better for home improvements: HELOC or personal loan?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "For projects over $30,000, a HELOC often makes sense due to lower rates and potential tax deductions. For smaller projects under $10,000, a personal loan may be better due to closing costs on HELOCs. For mid-range projects, both options are viable depending on your priorities."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is HELOC interest tax deductible?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, HELOC interest may be tax-deductible if the funds are used for home improvements that substantially improve your home. You must itemize deductions to benefit. Consult a tax professional for your specific situation."
-        }
-      }
-    ]
-  }
-  </script>
-  
+  <title>Home Improvement Loan Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
 </head>
 <body>
   <div id="root"></div>
@@ -137,286 +53,19 @@
     const LoanCalculator = () => {
       const [projectCost, setProjectCost] = useState(25000);
       const [creditScore, setCreditScore] = useState('good');
-      const [homeValue, setHomeValue] = useState('');
-      const [mortgageBalance, setMortgageBalance] = useState('');
       const [showAdvanced, setShowAdvanced] = useState(false);
       const [interactionCount, setInteractionCount] = useState(0);
-      const [selectedProjects, setSelectedProjects] = useState({});
-      const [showROICalculator, setShowROICalculator] = useState(false);
-      const [roiZipCode, setRoiZipCode] = useState('');
+      const [showLeadForm, setShowLeadForm] = useState(false);
+      const [leadSubmitted, setLeadSubmitted] = useState(false);
+      const [email, setEmail] = useState('');
+      const [isSubmitting, setIsSubmitting] = useState(false);
       
-      // Read URL parameters on load (for shared links)
-      useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('cost')) setProjectCost(Number(params.get('cost')));
-        if (params.get('credit')) setCreditScore(params.get('credit'));
-        if (params.get('home')) setHomeValue(params.get('home'));
-        if (params.get('mortgage')) setMortgageBalance(params.get('mortgage'));
-      }, []);
-      
-      // Weather/climate zones based on ZIP code
-      const getClimateZone = (zip) => {
-        if (!zip || zip.length < 3) return null;
-        const prefix = parseInt(zip.substring(0, 3));
-        
-        // Hurricane Zone: FL, Gulf Coast TX, LA, coastal GA/SC/NC
-        if ((prefix >= 320 && prefix <= 349) || // FL
-            (prefix >= 700 && prefix <= 715) || // LA
-            (prefix >= 770 && prefix <= 785) || // Gulf TX
-            (prefix >= 290 && prefix <= 299) || // SC coast
-            (prefix >= 270 && prefix <= 289 && prefix <= 279)) { // NC coast
-          return {
-            name: 'Hurricane Zone',
-            icon: '🌀',
-            color: 'orange',
-            priorities: ['roofAsphalt', 'garageDoor', 'windowsVinyl', 'sidingFiberCement'],
-            insights: [
-              { text: 'Backup generators show 100-139% ROI in hurricane-prone areas', icon: '⚡' },
-              { text: 'Impact-rated garage doors and windows are highly valued by buyers', icon: '🚗' },
-              { text: 'Metal roofing and fiber cement siding resist storm damage', icon: '🏠' }
-            ]
-          };
-        }
-        // Snow Belt: Upper Midwest, New England, Upstate NY
-        if ((prefix >= 430 && prefix <= 499) || // MI, OH, IN
-            (prefix >= 530 && prefix <= 549) || // WI
-            (prefix >= 550 && prefix <= 567) || // MN
-            (prefix >= 10 && prefix <= 69) ||   // New England
-            (prefix >= 100 && prefix <= 149)) { // Upstate NY
-          return {
-            name: 'Snow Belt',
-            icon: '❄️',
-            color: 'blue',
-            priorities: ['roofAsphalt', 'windowsVinyl', 'hvacReplace', 'sidingVinyl'],
-            insights: [
-              { text: 'Insulated garage doors and windows significantly reduce heating costs', icon: '🪟' },
-              { text: 'HVAC efficiency upgrades have higher impact in cold climates', icon: '❄️' },
-              { text: 'Ice dam prevention (roofing, insulation) protects long-term value', icon: '🏠' }
-            ]
-          };
-        }
-        // Hot/Arid: AZ, NV, desert CA, NM, West TX
-        if ((prefix >= 850 && prefix <= 865) || // AZ
-            (prefix >= 889 && prefix <= 898) || // NV
-            (prefix >= 900 && prefix <= 935) || // SoCal
-            (prefix >= 870 && prefix <= 884) || // NM
-            (prefix >= 790 && prefix <= 799)) { // West TX
-          return {
-            name: 'Hot & Arid',
-            icon: '🌵',
-            color: 'amber',
-            priorities: ['windowsVinyl', 'hvacReplace', 'roofAsphalt'],
-            insights: [
-              { text: 'Energy-efficient windows and HVAC show strong ROI with high cooling costs', icon: '❄️' },
-              { text: 'Cool/reflective roofing materials can reduce energy bills 10-25%', icon: '🏠' },
-              { text: 'Shade structures and exterior improvements valued for outdoor living', icon: '🌳' }
-            ]
-          };
-        }
-        // High Humidity: Southeast (non-coastal FL, GA, AL, MS, SC interior)
-        if ((prefix >= 300 && prefix <= 319) || // GA
-            (prefix >= 350 && prefix <= 369) || // AL
-            (prefix >= 386 && prefix <= 397) || // MS
-            (prefix >= 370 && prefix <= 385)) { // TN
-          return {
-            name: 'High Humidity',
-            icon: '💧',
-            color: 'teal',
-            priorities: ['hvacReplace', 'sidingFiberCement', 'roofAsphalt', 'bathMidrange'],
-            insights: [
-              { text: 'Moisture-resistant siding (fiber cement, vinyl) prevents rot and mold', icon: '🏗️' },
-              { text: 'HVAC with dehumidification features highly valued', icon: '❄️' },
-              { text: 'Bathroom ventilation upgrades protect against moisture damage', icon: '🚿' }
-            ]
-          };
-        }
-        // Earthquake Zone: CA, Pacific NW
-        if ((prefix >= 936 && prefix <= 966) || // NorCal
-            (prefix >= 970 && prefix <= 994)) { // OR, WA
-          return {
-            name: 'Seismic Zone',
-            icon: '🌎',
-            color: 'purple',
-            priorities: ['foundation', 'roofAsphalt', 'windowsVinyl'],
-            insights: [
-              { text: 'Foundation bolting and retrofitting highly valued for safety', icon: '🧱' },
-              { text: 'Flexible gas lines and water heater strapping are smart additions', icon: '🔧' },
-              { text: 'Buyers pay premium for earthquake-retrofitted homes', icon: '🏠' }
-            ]
-          };
-        }
-        // Tornado Alley: OK, KS, NE, parts of TX
-        if ((prefix >= 730 && prefix <= 749) || // OK
-            (prefix >= 660 && prefix <= 679) || // KS
-            (prefix >= 680 && prefix <= 693) || // NE
-            (prefix >= 750 && prefix <= 769)) { // North TX
-          return {
-            name: 'Tornado Alley',
-            icon: '🌪️',
-            color: 'slate',
-            priorities: ['garageDoor', 'roofAsphalt', 'sidingFiberCement'],
-            insights: [
-              { text: 'Reinforced garage doors are critical — often first point of failure', icon: '🚗' },
-              { text: 'Impact-resistant roofing can lower insurance premiums', icon: '🏠' },
-              { text: 'Safe rooms/storm shelters increasingly valued by buyers', icon: '🛡️' }
-            ]
-          };
-        }
-        // Wildfire Zone: CA foothills, CO, Mountain West
-        if ((prefix >= 800 && prefix <= 816) || // CO
-            (prefix >= 820 && prefix <= 831) || // WY
-            (prefix >= 832 && prefix <= 838)) { // ID
-          return {
-            name: 'Wildfire Risk',
-            icon: '🔥',
-            color: 'red',
-            priorities: ['roofAsphalt', 'sidingFiberCement', 'windowsVinyl', 'deckComposite'],
-            insights: [
-              { text: 'Fire-resistant roofing (Class A) and siding are increasingly required', icon: '🏠' },
-              { text: 'Composite decking and hardscaping over wood reduces fire risk', icon: '🌳' },
-              { text: 'Defensible space improvements can lower insurance costs significantly', icon: '🛡️' }
-            ]
-          };
-        }
-        // Temperate/Mild: Mid-Atlantic, parts of Midwest
-        return {
-          name: 'Temperate',
-          icon: '🌤️',
-          color: 'green',
-          priorities: ['garageDoor', 'entryDoorSteel', 'kitchenMinor'],
-          insights: [
-            { text: 'Curb appeal projects (doors, siding) show strongest ROI in moderate climates', icon: '🚗' },
-            { text: 'Focus on aesthetic upgrades — fewer weather-driven necessities', icon: '🎨' },
-            { text: 'Energy efficiency still matters but less urgent than extreme climates', icon: '💡' }
-          ]
-        };
-      };
-
-      const climateZone = getClimateZone(roiZipCode);
-
-      // Project types with ROI data (Source: 2025 Cost vs. Value Report)
-      const projectTypes = {
-        structural: {
-          label: 'Structural / Code Compliant',
-          description: 'Necessary work — often required for safety, insurance, or sale',
-          items: {
-            roofAsphalt: { name: 'Roof - Asphalt Shingle', roiMin: 55, roiMax: 65, icon: '🏠' },
-            roofMetal: { name: 'Roof - Metal/Standing Seam', roiMin: 45, roiMax: 55, icon: '🏠' },
-            hvacReplace: { name: 'HVAC - Replace Same Fuel', roiMin: 50, roiMax: 65, icon: '❄️' },
-            hvacConvert: { name: 'HVAC - Heat Pump Conversion', roiMin: 50, roiMax: 66, icon: '♻️' },
-            electrical: { name: 'Electrical Panel Upgrade', roiMin: 50, roiMax: 60, icon: '⚡' },
-            plumbing: { name: 'Plumbing Overhaul', roiMin: 50, roiMax: 60, icon: '🔧' },
-            foundation: { name: 'Foundation Repair', roiMin: 70, roiMax: 80, icon: '🧱' },
-            windowsVinyl: { name: 'Windows - Vinyl', roiMin: 57, roiMax: 68, icon: '🪟' },
-            windowsWood: { name: 'Windows - Wood', roiMin: 52, roiMax: 57, icon: '🪟' },
-            sidingVinyl: { name: 'Siding - Vinyl', roiMin: 68, roiMax: 75, icon: '🏗️' },
-            sidingFiberCement: { name: 'Siding - Fiber Cement', roiMin: 80, roiMax: 86, icon: '🏗️' }
-          }
-        },
-        aesthetic: {
-          label: 'Aesthetic / Lifestyle',
-          description: 'Value-add work — improves livability and appeal',
-          items: {
-            kitchenMinor: { name: 'Kitchen - Minor Remodel', roiMin: 96, roiMax: 113, icon: '🍳' },
-            kitchenMajor: { name: 'Kitchen - Major Remodel', roiMin: 38, roiMax: 51, icon: '👨‍🍳' },
-            bathMidrange: { name: 'Bathroom - Midrange', roiMin: 70, roiMax: 80, icon: '🚿' },
-            bathUpscale: { name: 'Bathroom - Upscale', roiMin: 55, roiMax: 61, icon: '🛁' },
-            garageDoor: { name: 'Garage Door Replacement', roiMin: 194, roiMax: 268, icon: '🚗' },
-            entryDoorSteel: { name: 'Entry Door - Steel', roiMin: 188, roiMax: 216, icon: '🚪' },
-            entryDoorFiberglass: { name: 'Entry Door - Fiberglass', roiMin: 90, roiMax: 110, icon: '🚪' },
-            flooringHardwood: { name: 'Flooring - Hardwood', roiMin: 70, roiMax: 80, icon: '🪵' },
-            flooringLVP: { name: 'Flooring - LVP/Vinyl', roiMin: 60, roiMax: 70, icon: '🪵' },
-            deckWood: { name: 'Deck - Wood', roiMin: 68, roiMax: 75, icon: '🌳' },
-            deckComposite: { name: 'Deck - Composite', roiMin: 55, roiMax: 60, icon: '🌳' }
-          }
-        }
-      };
-
-      const toggleProject = (key) => {
-        setSelectedProjects(prev => {
-          const newProjects = { ...prev };
-          if (newProjects[key]) {
-            delete newProjects[key];
-          } else {
-            newProjects[key] = { cost: '' };
-          }
-          return newProjects;
-        });
-      };
-
-      const updateProjectCost = (key, cost) => {
-        setSelectedProjects(prev => ({
-          ...prev,
-          [key]: { ...prev[key], cost }
-        }));
-      };
-
-      // Calculate ROI summary
-      const roiSummary = useMemo(() => {
-        const selected = Object.entries(selectedProjects).filter(([_, v]) => v.cost && Number(v.cost) > 0);
-        if (selected.length === 0) return null;
-
-        let totalCost = 0;
-        let totalValueMin = 0;
-        let totalValueMax = 0;
-        let structuralCost = 0;
-        let aestheticCost = 0;
-
-        selected.forEach(([key, data]) => {
-          const cost = Number(data.cost);
-          totalCost += cost;
-          
-          // Find the project info
-          let projectInfo = null;
-          let isStructural = false;
-          if (projectTypes.structural.items[key]) {
-            projectInfo = projectTypes.structural.items[key];
-            isStructural = true;
-            structuralCost += cost;
-          } else if (projectTypes.aesthetic.items[key]) {
-            projectInfo = projectTypes.aesthetic.items[key];
-            aestheticCost += cost;
-          }
-
-          if (projectInfo) {
-            totalValueMin += cost * (projectInfo.roiMin / 100);
-            totalValueMax += cost * (projectInfo.roiMax / 100);
-          }
-        });
-
-        const avgValueAdd = (totalValueMin + totalValueMax) / 2;
-        const blendedROI = totalCost > 0 ? (avgValueAdd / totalCost) * 100 : 0;
-        const structuralPercent = totalCost > 0 ? (structuralCost / totalCost) * 100 : 0;
-
-        return {
-          totalCost,
-          totalValueMin,
-          totalValueMax,
-          avgValueAdd,
-          blendedROI,
-          structuralCost,
-          aestheticCost,
-          structuralPercent,
-          netCostMin: totalCost - totalValueMax,
-          netCostMax: totalCost - totalValueMin,
-          projectCount: selected.length
-        };
-      }, [selectedProjects]);
-
-      // Sync total project cost with ROI calculator
-      useEffect(() => {
-        if (roiSummary && roiSummary.totalCost > 0) {
-          setProjectCost(roiSummary.totalCost);
-        }
-      }, [roiSummary]);
-      
-      // Updated rates based on January 2026 Bankrate/Curinos data
       const getDefaultRates = (score) => {
         switch(score) {
-          case 'excellent': return { unsecuredAPR: 11.49, helocAPR: 7.25 }; // 740+ credit
-          case 'good': return { unsecuredAPR: 14.49, helocAPR: 8.25 };     // 670-739
-          case 'fair': return { unsecuredAPR: 21.49, helocAPR: 9.75 };     // 580-669
-          default: return { unsecuredAPR: 14.49, helocAPR: 8.25 };
+          case 'excellent': return { unsecuredAPR: 12.99, helocAPR: 7.5 };
+          case 'good': return { unsecuredAPR: 14.99, helocAPR: 8.5 };
+          case 'fair': return { unsecuredAPR: 18.99, helocAPR: 9.5 };
+          default: return { unsecuredAPR: 14.99, helocAPR: 8.5 };
         }
       };
       
@@ -430,6 +79,23 @@
 
       const trackInteraction = () => {
         setInteractionCount(prev => prev + 1);
+      };
+
+      useEffect(() => {
+        if (interactionCount >= 3 && !leadSubmitted) {
+          setShowLeadForm(true);
+        }
+      }, [interactionCount, leadSubmitted]);
+
+      const handleLeadSubmit = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+        setIsSubmitting(true);
+        // Replace with actual API endpoint
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setLeadSubmitted(true);
+        setShowLeadForm(false);
+        setIsSubmitting(false);
       };
 
       useEffect(() => {
@@ -463,83 +129,6 @@
         };
       }, [projectCost, unsecuredAPR, unsecuredTerm, helocAPR, helocTerm, closingCostPercent]);
 
-      // Equity calculations
-      const equityCalc = useMemo(() => {
-        const home = Number(homeValue) || 0;
-        const mortgage = Number(mortgageBalance) || 0;
-        if (home === 0) return null;
-        
-        const equity = home - mortgage;
-        const equityPercent = (equity / home) * 100;
-        const maxBorrowable = Math.max(0, (home * 0.80) - mortgage); // 80% LTV limit
-        const qualifiesForHeloc = equityPercent >= 20 && maxBorrowable >= projectCost;
-        const needsMoreEquity = maxBorrowable < projectCost;
-        
-        return {
-          equity,
-          equityPercent,
-          maxBorrowable,
-          qualifiesForHeloc,
-          needsMoreEquity,
-          shortfall: needsMoreEquity ? projectCost - maxBorrowable : 0
-        };
-      }, [homeValue, mortgageBalance, projectCost]);
-
-      // Smart Summary - ties all calculators together
-      const smartSummary = useMemo(() => {
-        if (!calculations) return null;
-        
-        const roi = roiSummary ? roiSummary.blendedROI : 70; // Default 70% if no projects selected
-        const valueAdd = roiSummary ? roiSummary.avgValueAdd : projectCost * 0.7;
-        const totalInterestHELOC = calculations.heloc.interest;
-        const totalInterestUnsecured = calculations.unsecured.interest;
-        const monthlyHELOC = calculations.heloc.monthly;
-        const monthlyUnsecured = calculations.unsecured.monthly;
-        
-        // True cost after value add
-        const netCostHELOC = projectCost + totalInterestHELOC - valueAdd;
-        const netCostUnsecured = projectCost + totalInterestUnsecured - valueAdd;
-        
-        // Monthly cost accounting for value added (amortized over loan term)
-        const monthlyValueAdd = valueAdd / (helocTerm * 12);
-        const trueMonthlyHELOC = monthlyHELOC - monthlyValueAdd;
-        const trueMonthlyUnsecured = monthlyUnsecured - monthlyValueAdd;
-        
-        // Is financing worth it? Compare ROI to interest rate
-        const roiDecimal = roi / 100;
-        const helocRateDecimal = helocAPR / 100;
-        const unsecuredRateDecimal = unsecuredAPR / 100;
-        
-        const financingVerdict = roiDecimal > helocRateDecimal ? 'good-investment' : 
-                                 roiDecimal > unsecuredRateDecimal * 0.5 ? 'consider-carefully' : 'pay-cash';
-        
-        // Break-even calculation: when does value add cover financing costs?
-        // Monthly: when cumulative value > cumulative payments
-        const monthsToBreakEvenHELOC = totalInterestHELOC > 0 ? Math.ceil((projectCost - valueAdd + totalInterestHELOC) / monthlyHELOC) : helocTerm * 12;
-        const yearsToBreakEvenHELOC = (monthsToBreakEvenHELOC / 12).toFixed(1);
-        
-        // Wealth impact over 5 years (simplified)
-        const appreciationRate = 0.03; // 3% annual home appreciation
-        const futureValueAdd = valueAdd * Math.pow(1 + appreciationRate, 5);
-        const wealthGainHELOC = futureValueAdd - (projectCost + totalInterestHELOC);
-        const wealthGainUnsecured = futureValueAdd - (projectCost + totalInterestUnsecured);
-        
-        return {
-          roi,
-          valueAdd,
-          netCostHELOC,
-          netCostUnsecured,
-          trueMonthlyHELOC,
-          trueMonthlyUnsecured,
-          financingVerdict,
-          yearsToBreakEvenHELOC,
-          wealthGainHELOC,
-          wealthGainUnsecured,
-          totalSavingsHELOC: totalInterestUnsecured - totalInterestHELOC + calculations.heloc.taxSavings,
-          bestOption: netCostHELOC < netCostUnsecured ? 'heloc' : 'unsecured'
-        };
-      }, [calculations, roiSummary, projectCost, helocAPR, unsecuredAPR, helocTerm]);
-
       const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
       const formatCurrencyDecimals = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
@@ -560,1194 +149,332 @@
       return (
         <div className="min-h-screen bg-slate-50 py-8 px-4 sm:py-12 sm:px-6" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
           <div className="max-w-4xl mx-auto">
-            {/* Top Navigation */}
-            <nav className="flex justify-end mb-4">
-              <a href="/about" className="text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">About Us</a>
-            </nav>
-
-            {/* Header with SEO H1 */}
-            <header className="text-center mb-8 sm:mb-12">
+            {/* Header */}
+            <div className="text-center mb-8 sm:mb-12">
               <h1 className="text-3xl sm:text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
-                HELOC vs Personal Loan Calculator
+                Home Improvement Loan Calculator
               </h1>
               <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mt-3">
-                Compare home improvement financing options side-by-side. See real numbers for monthly payments, total interest, and get a personalized recommendation.
+                Compare your financing options for a new roof. See real numbers, make confident decisions.
               </p>
-            </header>
+            </div>
 
-            {/* Main Calculator - wrapped in main for semantics */}
-            <main>
-              {/* Input Section - PRIMARY (always visible) */}
-              <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6" aria-label="Loan parameters">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold text-slate-800">💰 Your Project</h2>
+            {/* Input Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Project Cost */}
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-2 flex items-center">Project Cost</label>
+                  <div className="relative mt-2">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <input type="number" value={projectCost} onChange={(e) => setProjectCost(Math.max(0, Number(e.target.value)))} className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-lg font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    {[15000, 25000, 40000].map((amount) => (
+                      <button key={amount} onClick={() => { setProjectCost(amount); trackInteraction(); }} className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${projectCost === amount ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{formatCurrency(amount)}</button>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {/* Project Cost */}
-                  <div>
-                    <label htmlFor="projectCost" className="text-sm font-semibold text-slate-700 mb-2 flex items-center">
-                      Project Cost
-                      {roiSummary && <span className="ml-2 text-xs text-emerald-600 font-normal">(from ROI calculator)</span>}
-                    </label>
-                    <div className="relative mt-2">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
-                      <input id="projectCost" type="number" value={projectCost} onChange={(e) => setProjectCost(Math.max(0, Number(e.target.value)))} className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-lg font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" aria-describedby="projectCostHelp" />
+
+                {/* Credit Score */}
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-2 flex items-center">Credit Score Range</label>
+                  <select value={creditScore} onChange={(e) => { setCreditScore(e.target.value); trackInteraction(); }} className="w-full mt-2 px-4 py-3 border border-slate-300 rounded-xl text-lg font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all appearance-none bg-white cursor-pointer" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}>
+                    <option value="excellent">Excellent (740+)</option>
+                    <option value="good">Good (670-739)</option>
+                    <option value="fair">Fair (580-669)</option>
+                  </select>
+                  <p className="mt-2 text-xs text-slate-500">Your credit score affects available rates</p>
+                </div>
+              </div>
+
+              {/* Advanced Settings */}
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
+                  <span className={`transform transition-transform ${showAdvanced ? 'rotate-90' : ''}`}>▶</span>
+                  Advanced Settings
+                </button>
+                {showAdvanced && (
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1">Unsecured APR (%)</label>
+                      <input type="number" step="0.01" value={unsecuredAPR} onChange={(e) => setUnsecuredAPR(Number(e.target.value))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
                     </div>
-                    <div className="mt-2 flex gap-2" id="projectCostHelp">
-                      {[15000, 25000, 40000].map((amount) => (
-                        <button key={amount} onClick={() => { setProjectCost(amount); trackInteraction(); }} className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${projectCost === amount ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{formatCurrency(amount)}</button>
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1">HELOC APR (%)</label>
+                      <input type="number" step="0.01" value={helocAPR} onChange={(e) => setHelocAPR(Number(e.target.value))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1">HELOC Closing Costs (%)</label>
+                      <input type="number" step="0.1" value={closingCostPercent} onChange={(e) => setClosingCostPercent(Math.max(0, Number(e.target.value)))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Comparison Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+              {/* Unsecured Loan Card */}
+              <div className={`bg-white rounded-2xl shadow-sm border-2 p-6 transition-all ${recommendation.highlight === 'unsecured' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
+                <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+                  <div>
+                    <span className="inline-flex items-center px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full mb-2">⚡ The Speed Option</span>
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center">
+                      Unsecured Loan
+                      <InfoButton title="What is an Unsecured Loan?">
+                        <p>A personal loan that doesn't require collateral. You borrow a fixed amount and repay it in equal monthly installments.</p>
+                        <p className="mt-2"><strong>Pros:</strong></p>
+                        <ul className="list-disc list-inside text-xs"><li>No risk to your home</li><li>Fast approval (often same-day)</li><li>Fixed rate — payment never changes</li></ul>
+                        <p className="mt-2"><strong>Cons:</strong></p>
+                        <ul className="list-disc list-inside text-xs"><li>Higher interest rates</li><li>Shorter terms mean higher payments</li></ul>
+                      </InfoButton>
+                    </h3>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                    ✓ No Home Lien
+                    <InfoButton title="No Home Lien">
+                      <p>With an unsecured loan, your home is <strong>not</strong> used as collateral.</p>
+                      <p className="mt-2">If you can't make payments, the lender cannot foreclose on your home — though it will affect your credit score.</p>
+                    </InfoButton>
+                  </span>
+                </div>
+
+                <p className="text-emerald-600 font-semibold text-sm mb-4">Debt-free by {new Date().getFullYear() + unsecuredTerm}</p>
+
+                {/* Term Selector */}
+                <div className="mb-4 p-3 bg-slate-50 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Loan Term</span>
+                    <div className="flex items-center gap-2">
+                      {[5, 7, 10, 15].map((years) => (
+                        <button key={years} onClick={() => { setUnsecuredTerm(years); trackInteraction(); }} className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${unsecuredTerm === years ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>{years} yr</button>
                       ))}
                     </div>
                   </div>
-
-                  {/* Credit Score */}
-                  <div>
-                    <label htmlFor="creditScore" className="text-sm font-semibold text-slate-700 mb-2 flex items-center">Credit Score Range</label>
-                    <select id="creditScore" value={creditScore} onChange={(e) => { setCreditScore(e.target.value); trackInteraction(); }} className="w-full mt-2 px-4 py-3 border border-slate-300 rounded-xl text-lg font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all appearance-none bg-white cursor-pointer" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}>
-                      <option value="excellent">Excellent (740+)</option>
-                      <option value="good">Good (670-739)</option>
-                      <option value="fair">Fair (580-669)</option>
-                    </select>
-                    <p className="mt-2 text-xs text-slate-500">Your credit score affects available rates</p>
-                  </div>
                 </div>
 
-                {/* Equity Estimator - Inline */}
-                <div className="mt-6 pt-6 border-t border-slate-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-lg">🏠</span>
-                    <h3 className="text-sm font-semibold text-slate-700">Check Your HELOC Eligibility</h3>
-                    <span className="text-xs text-slate-500">(Optional)</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="homeValue" className="text-sm font-medium text-slate-600 mb-1">Estimated Home Value</label>
-                      <div className="relative mt-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                        <input id="homeValue" type="number" value={homeValue} onChange={(e) => setHomeValue(e.target.value)} placeholder="400,000" className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-base text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-600 mb-1">Mortgage Balance Owed</label>
-                      <div className="relative mt-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                        <input id="mortgageBalance" type="number" value={mortgageBalance} onChange={(e) => setMortgageBalance(e.target.value)} placeholder="250,000" className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl text-base text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Equity Results */}
-                  {equityCalc && (
-                    <div className={`mt-4 p-4 rounded-xl ${equityCalc.qualifiesForHeloc ? 'bg-emerald-50 border border-emerald-200' : equityCalc.equityPercent >= 20 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">{equityCalc.qualifiesForHeloc ? '✅' : equityCalc.equityPercent >= 20 ? '⚠️' : '❌'}</span>
-                        <div className="flex-1">
-                          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-2">
-                            <div>
-                              <p className="text-xs text-slate-500">Your Equity</p>
-                              <p className="text-lg font-bold text-slate-800">{formatCurrency(equityCalc.equity)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-slate-500">Equity %</p>
-                              <p className="text-lg font-bold text-slate-800">{equityCalc.equityPercent.toFixed(1)}%</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-slate-500">Max HELOC Amount</p>
-                              <p className="text-lg font-bold text-slate-800">{formatCurrency(equityCalc.maxBorrowable)}</p>
-                            </div>
-                          </div>
-                          {equityCalc.qualifiesForHeloc ? (
-                            <p className="text-sm text-emerald-700 font-medium">You likely qualify for a HELOC to cover this {formatCurrency(projectCost)} project.</p>
-                          ) : equityCalc.equityPercent < 20 ? (
-                            <p className="text-sm text-red-700 font-medium">Most lenders require at least 20% equity. You're at {equityCalc.equityPercent.toFixed(1)}%.</p>
-                          ) : (
-                            <p className="text-sm text-amber-700 font-medium">Your max HELOC ({formatCurrency(equityCalc.maxBorrowable)}) is {formatCurrency(equityCalc.shortfall)} short of your project cost. Consider a smaller project or supplementing with a personal loan.</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div className="mb-4">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Monthly Payment</p>
+                  <p className="text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>{formatCurrencyDecimals(calculations.unsecured.monthly)}</p>
                 </div>
 
-                {/* Advanced Settings */}
-                <div className="mt-6 pt-6 border-t border-slate-100">
-                  <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors" aria-expanded={showAdvanced}>
-                    <span className={`transform transition-transform ${showAdvanced ? 'rotate-90' : ''}`}>▶</span>
-                    Advanced Settings
-                  </button>
-                  {showAdvanced && (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl">
-                      <div>
-                        <label htmlFor="unsecuredAPR" className="text-xs font-medium text-slate-600 mb-1">Unsecured APR (%)</label>
-                        <input id="unsecuredAPR" type="number" step="0.01" value={unsecuredAPR} onChange={(e) => setUnsecuredAPR(Number(e.target.value))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
-                      </div>
-                      <div>
-                        <label htmlFor="helocAPR" className="text-xs font-medium text-slate-600 mb-1">HELOC APR (%)</label>
-                        <input id="helocAPR" type="number" step="0.01" value={helocAPR} onChange={(e) => setHelocAPR(Number(e.target.value))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
-                      </div>
-                      <div>
-                        <label htmlFor="closingCosts" className="text-xs font-medium text-slate-600 mb-1">HELOC Closing Costs (%)</label>
-                        <input id="closingCosts" type="number" step="0.1" value={closingCostPercent} onChange={(e) => setClosingCostPercent(Math.max(0, Number(e.target.value)))} className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* ROI Calculator Toggle - SECONDARY (optional, collapsed by default) */}
-              <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-6 sm:p-8 mb-6">
-                <button 
-                  onClick={() => setShowROICalculator(!showROICalculator)}
-                  className="w-full flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📊</span>
-                    <div className="text-left">
-                      <h2 className="text-lg font-bold text-slate-800">Project ROI Calculator</h2>
-                      <p className="text-sm text-slate-600">Select your work types and see estimated return on investment</p>
-                    </div>
+                <div className="space-y-2 pt-4 border-t border-slate-100">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Loan Amount</span>
+                    <span className="font-medium text-slate-800">{formatCurrency(projectCost)}</span>
                   </div>
-                  <span className={`text-2xl transition-transform ${showROICalculator ? 'rotate-180' : ''}`}>▼</span>
-                </button>
-
-                {showROICalculator && (
-                  <div className="mt-6 pt-6 border-t border-blue-200">
-                    {/* ZIP Code for Climate-Based Recommendations */}
-                    <div className="mb-6 p-4 bg-white rounded-xl border border-slate-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">📍</span>
-                          <label className="text-sm font-medium text-slate-700">Your ZIP Code</label>
-                        </div>
-                        <input
-                          type="text"
-                          value={roiZipCode}
-                          onChange={(e) => setRoiZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
-                          placeholder="Enter ZIP"
-                          className="w-28 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          maxLength={5}
-                        />
-                        {climateZone && (
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${climateZone.color}-100 text-${climateZone.color}-700`} style={{backgroundColor: climateZone.color === 'orange' ? '#ffedd5' : climateZone.color === 'blue' ? '#dbeafe' : climateZone.color === 'amber' ? '#fef3c7' : climateZone.color === 'teal' ? '#ccfbf1' : climateZone.color === 'purple' ? '#f3e8ff' : climateZone.color === 'slate' ? '#f1f5f9' : climateZone.color === 'red' ? '#fee2e2' : '#dcfce7', color: climateZone.color === 'orange' ? '#c2410c' : climateZone.color === 'blue' ? '#1d4ed8' : climateZone.color === 'amber' ? '#b45309' : climateZone.color === 'teal' ? '#0f766e' : climateZone.color === 'purple' ? '#7c3aed' : climateZone.color === 'slate' ? '#475569' : climateZone.color === 'red' ? '#dc2626' : '#16a34a'}}>
-                            {climateZone.icon} {climateZone.name}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {climateZone && (
-                        <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                          <p className="text-xs font-semibold text-slate-700 mb-2">🎯 Priority projects for your area:</p>
-                          <div className="space-y-1.5">
-                            {climateZone.insights.map((insight, i) => (
-                              <p key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                                <span>{insight.icon}</span>
-                                <span>{insight.text}</span>
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {!climateZone && roiZipCode.length === 0 && (
-                        <p className="text-xs text-slate-400">Enter your ZIP to see climate-specific project recommendations</p>
-                      )}
-                    </div>
-
-                    {/* Structural Projects */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg">🔧</span>
-                        <h3 className="font-semibold text-slate-800">{projectTypes.structural.label}</h3>
-                      </div>
-                      <p className="text-xs text-slate-500 mb-3">{projectTypes.structural.description}</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {Object.entries(projectTypes.structural.items).map(([key, project]) => (
-                          <div key={key} className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedProjects[key] ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
-                            <div className="flex items-center gap-2" onClick={() => toggleProject(key)}>
-                              <input 
-                                type="checkbox" 
-                                checked={!!selectedProjects[key]} 
-                                onChange={() => toggleProject(key)}
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              <span>{project.icon}</span>
-                              <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
-                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
-                            </div>
-                            {selectedProjects[key] && (
-                              <div className="mt-2 relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                                <input
-                                  type="number"
-                                  value={selectedProjects[key].cost}
-                                  onChange={(e) => updateProjectCost(key, e.target.value)}
-                                  placeholder="Enter cost"
-                                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Aesthetic Projects */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg">🎨</span>
-                        <h3 className="font-semibold text-slate-800">{projectTypes.aesthetic.label}</h3>
-                      </div>
-                      <p className="text-xs text-slate-500 mb-3">{projectTypes.aesthetic.description}</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {Object.entries(projectTypes.aesthetic.items).map(([key, project]) => (
-                          <div key={key} className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedProjects[key] ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
-                            <div className="flex items-center gap-2" onClick={() => toggleProject(key)}>
-                              <input 
-                                type="checkbox" 
-                                checked={!!selectedProjects[key]} 
-                                onChange={() => toggleProject(key)}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span>{project.icon}</span>
-                              <span className="text-sm font-medium text-slate-700 flex-1">{project.name}</span>
-                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${project.roiMax >= 100 ? 'bg-emerald-100 text-emerald-700' : project.roiMax >= 70 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{project.roiMin}-{project.roiMax}%</span>
-                            </div>
-                            {selectedProjects[key] && (
-                              <div className="mt-2 relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                                <input
-                                  type="number"
-                                  value={selectedProjects[key].cost}
-                                  onChange={(e) => updateProjectCost(key, e.target.value)}
-                                  placeholder="Enter cost"
-                                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Source note */}
-                    <p className="text-xs text-slate-400 mb-4">
-                      ROI data from the <a href="https://www.remodeling.hw.net/cost-vs-value" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">2025 Cost vs. Value Report</a> by Zonda/Remodeling Magazine. National averages shown — actual ROI varies by region.
-                    </p>
-
-                    {/* ROI Summary */}
-                    {roiSummary && (
-                      <div className="bg-white rounded-xl p-5 border border-slate-200">
-                        <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                          <span>📈</span> Your Project Summary
-                        </h4>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                          <div className="text-center p-3 bg-slate-50 rounded-lg">
-                            <p className="text-xs text-slate-500 mb-1">Total Cost</p>
-                            <p className="text-xl font-bold text-slate-800">{formatCurrency(roiSummary.totalCost)}</p>
-                          </div>
-                          <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                            <p className="text-xs text-slate-500 mb-1">Est. Value Added</p>
-                            <p className="text-xl font-bold text-emerald-600">{formatCurrency(roiSummary.avgValueAdd)}</p>
-                          </div>
-                          <div className="text-center p-3 bg-blue-50 rounded-lg">
-                            <p className="text-xs text-slate-500 mb-1">Blended ROI</p>
-                            <p className="text-xl font-bold text-blue-600">{roiSummary.blendedROI.toFixed(0)}%</p>
-                          </div>
-                          <div className="text-center p-3 bg-amber-50 rounded-lg">
-                            <p className="text-xs text-slate-500 mb-1">Net Cost</p>
-                            <p className="text-xl font-bold text-amber-600">{formatCurrency(roiSummary.totalCost - roiSummary.avgValueAdd)}</p>
-                          </div>
-                        </div>
-
-                        {/* Structural vs Aesthetic Breakdown */}
-                        <div className="mb-4">
-                          <div className="flex justify-between text-xs text-slate-500 mb-1">
-                            <span>Structural: {formatCurrency(roiSummary.structuralCost)}</span>
-                            <span>Aesthetic: {formatCurrency(roiSummary.aestheticCost)}</span>
-                          </div>
-                          <div className="h-3 bg-slate-200 rounded-full overflow-hidden flex">
-                            <div 
-                              className="bg-blue-500 h-full transition-all"
-                              style={{ width: `${roiSummary.structuralPercent}%` }}
-                            />
-                            <div 
-                              className="bg-indigo-400 h-full transition-all"
-                              style={{ width: `${100 - roiSummary.structuralPercent}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Insight */}
-                        <div className={`p-3 rounded-lg ${roiSummary.structuralPercent >= 50 ? 'bg-blue-50 border border-blue-200' : 'bg-amber-50 border border-amber-200'}`}>
-                          <p className="text-sm">
-                            {roiSummary.structuralPercent >= 50 ? (
-                              <><span className="font-semibold text-blue-700">🛡️ Investment Protection:</span> <span className="text-blue-600">{roiSummary.structuralPercent.toFixed(0)}% of your budget is structural work — this protects your home's value long-term.</span></>
-                            ) : (
-                              <><span className="font-semibold text-amber-700">💡 Consider Your Timeline:</span> <span className="text-amber-600">{(100 - roiSummary.structuralPercent).toFixed(0)}% is aesthetic work. Great for enjoyment, but if selling within 3-5 years, you may not fully recoup costs.</span></>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">APR</span>
+                    <span className="font-medium text-slate-800">{unsecuredAPR}%</span>
                   </div>
-                )}
-              </section>
-
-              {/* Comparison Cards */}
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6" aria-label="Loan comparison">
-                {/* Unsecured Loan Card */}
-                <article className={`bg-white rounded-2xl shadow-sm border-2 p-6 transition-all ${recommendation.highlight === 'unsecured' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
-                  <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
-                    <div>
-                      <span className="inline-flex items-center px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full mb-2">⚡ The Speed Option</span>
-                      <h3 className="text-xl font-bold text-slate-800 flex items-center">
-                        Unsecured Personal Loan
-                        <InfoButton title="What is an Unsecured Loan?">
-                          <p>A personal loan that doesn't require collateral. You borrow a fixed amount and repay it in equal monthly installments.</p>
-                          <p className="mt-2"><strong>Pros:</strong></p>
-                          <ul className="list-disc list-inside text-xs"><li>No risk to your home</li><li>Fast approval (often same-day)</li><li>Fixed rate — payment never changes</li></ul>
-                          <p className="mt-2"><strong>Cons:</strong></p>
-                          <ul className="list-disc list-inside text-xs"><li>Higher interest rates</li><li>Shorter terms mean higher payments</li></ul>
-                        </InfoButton>
-                      </h3>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
-                      ✓ No Home Lien
-                      <InfoButton title="No Home Lien">
-                        <p>With an unsecured loan, your home is <strong>not</strong> used as collateral.</p>
-                        <p className="mt-2">If you can't make payments, the lender cannot foreclose on your home — though it will affect your credit score.</p>
-                      </InfoButton>
-                    </span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Total Interest</span>
+                    <span className="font-medium text-slate-800">{formatCurrency(calculations.unsecured.interest)}</span>
                   </div>
-
-                  <p className="text-emerald-600 font-semibold text-sm mb-4">Debt-free by {new Date().getFullYear() + unsecuredTerm}</p>
-
-                  {/* Term Selector */}
-                  <div className="mb-4 p-3 bg-slate-50 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Loan Term</span>
-                      <div className="flex items-center gap-2" role="group" aria-label="Unsecured loan term">
-                        {[5, 7, 10, 15].map((years) => (
-                          <button key={years} onClick={() => { setUnsecuredTerm(years); trackInteraction(); }} className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${unsecuredTerm === years ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`} aria-pressed={unsecuredTerm === years}>{years} yr</button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Monthly Payment</p>
-                    <p className="text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>{formatCurrencyDecimals(calculations.unsecured.monthly)}</p>
-                  </div>
-
-                  <div className="space-y-2 pt-4 border-t border-slate-100">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">Loan Amount</span>
-                      <span className="font-medium text-slate-800">{formatCurrency(projectCost)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">APR</span>
-                      <span className="font-medium text-slate-800">{unsecuredAPR}%</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">Total Interest</span>
-                      <span className="font-medium text-slate-800">{formatCurrency(calculations.unsecured.interest)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
-                      <span className="text-slate-700 font-medium">Total Cost</span>
-                      <span className="font-bold text-slate-800">{formatCurrency(calculations.unsecured.totalPaid)}</span>
-                    </div>
-                    {roiSummary && smartSummary && (
-                      <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100 bg-emerald-50 -mx-6 px-6 py-2 -mb-6 rounded-b-2xl">
-                        <span className="text-emerald-700 font-medium flex items-center gap-1">
-                          Net Cost (after ROI)
-                          <InfoButton title="Net Cost After Value Add">
-                            <p>This accounts for the value your renovation adds to your home.</p>
-                            <p className="mt-2"><strong>Calculation:</strong></p>
-                            <p className="text-xs">Total Cost: {formatCurrency(calculations.unsecured.totalPaid)}<br/>- Value Added: {formatCurrency(smartSummary.valueAdd)}<br/>= Net Cost: {formatCurrency(smartSummary.netCostUnsecured)}</p>
-                          </InfoButton>
-                        </span>
-                        <span className={`font-bold ${smartSummary.netCostUnsecured <= 0 ? 'text-emerald-600' : 'text-emerald-700'}`}>
-                          {smartSummary.netCostUnsecured <= 0 ? '+' : ''}{formatCurrency(Math.abs(smartSummary.netCostUnsecured))}
-                          {smartSummary.netCostUnsecured <= 0 && <span className="text-xs ml-1">gain!</span>}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </article>
-
-                {/* HELOC Card */}
-                <article className={`bg-white rounded-2xl shadow-sm border-2 p-6 transition-all ${recommendation.highlight === 'heloc' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
-                  <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
-                    <div>
-                      <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-2">💰 The Cash Flow Option</span>
-                      <h3 className="text-xl font-bold text-slate-800 flex items-center">
-                        HELOC
-                        <InfoButton title="What is a HELOC?">
-                          <p>A <strong>Home Equity Line of Credit</strong> lets you borrow against the equity in your home — the difference between your home's value and what you owe.</p>
-                          <p className="mt-2"><strong>Pros:</strong></p>
-                          <ul className="list-disc list-inside text-xs"><li>Lower interest rates</li><li>Interest may be tax-deductible</li><li>Longer terms = lower payments</li></ul>
-                          <p className="mt-2"><strong>Cons:</strong></p>
-                          <ul className="list-disc list-inside text-xs"><li>Your home is collateral (lien)</li><li>Variable rate can increase</li><li>Closing costs add to balance</li></ul>
-                        </InfoButton>
-                      </h3>
-                    </div>
-                    {equityCalc ? (
-                      equityCalc.qualifiesForHeloc ? (
-                        <span className="inline-flex items-center px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">✓ You Likely Qualify</span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">May Not Qualify</span>
-                      )
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
-                        Requires Equity
-                        <InfoButton title="What is Home Equity?">
-                          <p><strong>Home equity</strong> = Your home's current value minus what you still owe on your mortgage.</p>
-                          <p className="mt-2"><strong>Example:</strong></p>
-                        <p className="text-xs">Home value: $400,000<br/>Mortgage owed: $250,000<br/>Your equity: $150,000</p>
-                        <p className="mt-2 text-xs text-slate-500">Most lenders require 15-20% equity and limit total borrowing to 80-85% of home value.</p>
-                      </InfoButton>
-                    </span>
-                    )}
-                  </div>
-
-                  {/* Eligibility warning if user entered equity info but doesn't qualify */}
-                  {equityCalc && !equityCalc.qualifiesForHeloc && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                      <p className="text-xs text-red-700">
-                        <strong>Based on your equity:</strong> {equityCalc.equityPercent < 20 
-                          ? `You have ${equityCalc.equityPercent.toFixed(1)}% equity (20% typically required).`
-                          : `Max borrowable is ${formatCurrency(equityCalc.maxBorrowable)}, but your project costs ${formatCurrency(projectCost)}.`}
-                      </p>
-                    </div>
-                  )}
-
-                  <p className="text-blue-600 font-semibold text-sm mb-4">Paid off by {new Date().getFullYear() + helocTerm}</p>
-
-                  {/* Term Selector */}
-                  <div className="mb-4 p-3 bg-slate-50 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Loan Term</span>
-                      <div className="flex items-center gap-2" role="group" aria-label="HELOC term">
-                        {[5, 10, 15, 20].map((years) => (
-                          <button key={years} onClick={() => { setHelocTerm(years); trackInteraction(); }} className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${helocTerm === years ? 'bg-blue-500 text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`} aria-pressed={helocTerm === years}>{years} yr</button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Monthly Payment</p>
-                    <p className="text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>{formatCurrencyDecimals(calculations.heloc.monthly)}</p>
-                    {calculations.monthlySavings > 0 && (
-                      <p className="text-emerald-600 text-sm font-medium mt-1">Save {formatCurrency(calculations.monthlySavings)}/mo vs. unsecured</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-4 border-t border-slate-100">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">Loan Amount</span>
-                      <span className="font-medium text-slate-800">{formatCurrency(calculations.heloc.principal)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">Closing Costs</span>
-                      <span className="font-medium text-slate-500">{formatCurrency(calculations.heloc.closingCosts)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600 flex items-center">
-                        APR (Variable)
-                        <InfoButton title="Variable Rate Warning">
-                          <p>Unlike fixed-rate loans, HELOC rates can <strong>change over time</strong> based on market conditions.</p>
-                          <p className="mt-2">Your rate is tied to the Prime Rate. If the Federal Reserve raises rates, your monthly payment will increase.</p>
-                          <p className="mt-2 text-amber-600 text-xs">⚠️ Budget for potential rate increases when choosing a HELOC.</p>
-                        </InfoButton>
-                      </span>
-                      <span className="font-medium text-slate-800">{helocAPR}%</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">Total Interest</span>
-                      <span className={`font-medium ${calculations.interestDifference > 0 ? 'text-red-600' : 'text-slate-800'}`}>
-                        {formatCurrency(calculations.heloc.interest)}
-                        {calculations.interestDifference > 0 && <span className="text-xs ml-1">(+{formatCurrency(calculations.interestDifference)})</span>}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600 flex items-center">
-                        Est. Tax Savings*
-                        <InfoButton title="Tax Deduction for Home Improvements">
-                          <p>When you use a HELOC for home improvements, the interest you pay may be <strong>tax-deductible</strong>.</p>
-                          <p className="mt-2"><strong>How it works:</strong><br/>Interest paid × Your tax rate = Savings</p>
-                          <p className="mt-2 text-xs">{formatCurrency(calculations.heloc.interest)} × 22% = {formatCurrency(calculations.heloc.taxSavings)}</p>
-                          <p className="mt-2 text-amber-600 text-xs">⚠️ You must itemize deductions (not take standard deduction) to benefit. Consult a tax professional.</p>
-                        </InfoButton>
-                      </span>
-                      <span className="font-medium text-emerald-600">-{formatCurrency(calculations.heloc.taxSavings)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
-                      <span className="text-slate-700 font-medium">Total Cost</span>
-                      <span className="font-bold text-slate-800">{formatCurrency(calculations.heloc.totalPaid)}</span>
-                    </div>
-                    {roiSummary && smartSummary && (
-                      <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100 bg-emerald-50 -mx-6 px-6 py-2 -mb-6 rounded-b-2xl">
-                        <span className="text-emerald-700 font-medium flex items-center gap-1">
-                          Net Cost (after ROI)
-                          <InfoButton title="Net Cost After Value Add">
-                            <p>This accounts for the value your renovation adds to your home.</p>
-                            <p className="mt-2"><strong>Calculation:</strong></p>
-                            <p className="text-xs">Total Cost: {formatCurrency(calculations.heloc.totalPaid)}<br/>- Value Added: {formatCurrency(smartSummary.valueAdd)}<br/>= Net Cost: {formatCurrency(smartSummary.netCostHELOC)}</p>
-                          </InfoButton>
-                        </span>
-                        <span className={`font-bold ${smartSummary.netCostHELOC <= 0 ? 'text-emerald-600' : 'text-emerald-700'}`}>
-                          {smartSummary.netCostHELOC <= 0 ? '+' : ''}{formatCurrency(Math.abs(smartSummary.netCostHELOC))}
-                          {smartSummary.netCostHELOC <= 0 && <span className="text-xs ml-1">gain!</span>}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              </section>
-
-              {/* Chart Section */}
-              <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6" aria-label="Visual comparison">
-                <h2 className="text-lg font-bold text-slate-800 mb-6">Side-by-Side Comparison</h2>
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 mb-3">Monthly Payment</p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-4">
-                        <span className="w-24 text-sm text-slate-600">Unsecured</span>
-                        <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
-                          <div className="h-full bg-amber-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.unsecured.monthly / Math.max(calculations.unsecured.monthly, calculations.heloc.monthly)) * 100)}%` }}>
-                            <span className="text-sm font-bold text-amber-900">{formatCurrencyDecimals(calculations.unsecured.monthly)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="w-24 text-sm text-slate-600">HELOC</span>
-                        <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
-                          <div className="h-full bg-blue-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.heloc.monthly / Math.max(calculations.unsecured.monthly, calculations.heloc.monthly)) * 100)}%` }}>
-                            <span className="text-sm font-bold text-blue-900">{formatCurrencyDecimals(calculations.heloc.monthly)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 mb-3">Total Cost of Loan</p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-4">
-                        <span className="w-24 text-sm text-slate-600">Unsecured</span>
-                        <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
-                          <div className="h-full bg-amber-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.unsecured.totalPaid / Math.max(calculations.unsecured.totalPaid, calculations.heloc.totalPaid)) * 100)}%` }}>
-                            <span className="text-sm font-bold text-amber-900">{formatCurrency(calculations.unsecured.totalPaid)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="w-24 text-sm text-slate-600">HELOC</span>
-                        <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
-                          <div className="h-full bg-blue-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.heloc.totalPaid / Math.max(calculations.unsecured.totalPaid, calculations.heloc.totalPaid)) * 100)}%` }}>
-                            <span className="text-sm font-bold text-blue-900">{formatCurrency(calculations.heloc.totalPaid)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
+                    <span className="text-slate-700 font-medium">Total Cost</span>
+                    <span className="font-bold text-slate-800">{formatCurrency(calculations.unsecured.totalPaid)}</span>
                   </div>
                 </div>
-              </section>
-
-              {/* Smart Summary - Ties Everything Together */}
-              {smartSummary && roiSummary && (
-                <section className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl shadow-sm border-2 border-emerald-300 p-6 sm:p-8 mb-6">
-                  <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span>🎯</span> Your Complete Picture
-                  </h2>
-                  
-                  {/* Tab Navigation */}
-                  {(() => {
-                    const [activeInsightTab, setActiveInsightTab] = useState('breakeven');
-                    
-                    // Calculate break-even data
-                    const breakEvenData = useMemo(() => {
-                      const monthlyPayment = calculations.heloc.monthly;
-                      const totalLoanCost = calculations.heloc.totalPaid;
-                      const valueAdd = smartSummary.valueAdd;
-                      const appreciationRate = 0.03 / 12; // Monthly 3% annual
-                      
-                      // Find break-even month
-                      let cumulativePaid = 0;
-                      let cumulativeValue = valueAdd; // Immediate value add
-                      let breakEvenMonth = null;
-                      
-                      for (let month = 1; month <= helocTerm * 12; month++) {
-                        cumulativePaid += monthlyPayment;
-                        cumulativeValue = valueAdd * Math.pow(1 + appreciationRate, month);
-                        
-                        if (cumulativeValue >= cumulativePaid && !breakEvenMonth) {
-                          breakEvenMonth = month;
-                        }
-                      }
-                      
-                      // If value add exceeds total loan cost immediately
-                      if (valueAdd >= totalLoanCost) {
-                        breakEvenMonth = 0;
-                      }
-                      
-                      const breakEvenYears = breakEvenMonth !== null ? (breakEvenMonth / 12).toFixed(1) : null;
-                      const monthlySavingsAfterBreakeven = breakEvenMonth !== null ? monthlyPayment : 0;
-                      
-                      return {
-                        breakEvenMonth,
-                        breakEvenYears,
-                        monthlyPayment,
-                        totalLoanCost,
-                        valueAdd,
-                        monthlySavingsAfterBreakeven,
-                        percentComplete: breakEvenMonth !== null ? Math.min(100, (breakEvenMonth / (helocTerm * 12)) * 100) : 100
-                      };
-                    }, [calculations, smartSummary, helocTerm]);
-                    
-                    // Cash flow chart data
-                    const cashFlowChartData = useMemo(() => {
-                      const data = [];
-                      const monthlyPayment = calculations.heloc.monthly;
-                      const valueAdd = smartSummary.valueAdd;
-                      const appreciationRate = 0.03 / 12;
-                      const totalMonths = helocTerm * 12;
-                      
-                      // Generate data points every 6 months
-                      for (let month = 0; month <= totalMonths; month += 6) {
-                        const cumulativePaid = monthlyPayment * month;
-                        const cumulativeValue = valueAdd * Math.pow(1 + appreciationRate, month);
-                        const netPosition = cumulativeValue - cumulativePaid;
-                        
-                        data.push({
-                          month,
-                          label: month === 0 ? 'Start' : `Year ${(month / 12).toFixed(1)}`,
-                          paid: Math.round(cumulativePaid),
-                          value: Math.round(cumulativeValue),
-                          net: Math.round(netPosition)
-                        });
-                      }
-                      
-                      return data;
-                    }, [calculations, smartSummary, helocTerm]);
-                    
-                    // Do Nothing scenario calculations
-                    const doNothingAnalysis = useMemo(() => {
-                      const currentCost = projectCost;
-                      const currentRate = helocAPR;
-                      const valueAdd = smartSummary.valueAdd;
-                      
-                      // Cost increases (inflation + deterioration)
-                      const costIn1Year = currentCost * 1.08;
-                      const costIn2Years = currentCost * 1.17;
-                      const costIn3Years = currentCost * 1.27;
-                      
-                      // Rate projections (assume rates stay similar or rise slightly)
-                      const rateIn1Year = currentRate + 0.5;
-                      const rateIn2Years = currentRate + 0.75;
-                      
-                      // Calculate future monthly payment if waiting 2 years
-                      const futureMonthlyRate = rateIn2Years / 100 / 12;
-                      const futureMonths = helocTerm * 12;
-                      const futurePayment = costIn2Years * (futureMonthlyRate * Math.pow(1 + futureMonthlyRate, futureMonths)) / (Math.pow(1 + futureMonthlyRate, futureMonths) - 1);
-                      const currentPayment = calculations.heloc.monthly;
-                      
-                      // Missed appreciation on value add
-                      const missedAppreciation1Year = valueAdd * 0.03;
-                      const missedAppreciation2Years = valueAdd * (Math.pow(1.03, 2) - 1);
-                      
-                      // Total cost of waiting
-                      const extraProjectCost2Years = costIn2Years - currentCost;
-                      const extraInterest2Years = (futurePayment * futureMonths) - (currentPayment * futureMonths);
-                      const totalCostOfWaiting = extraProjectCost2Years + missedAppreciation2Years;
-                      
-                      return {
-                        currentCost,
-                        costIn1Year,
-                        costIn2Years,
-                        costIn3Years,
-                        currentRate,
-                        rateIn1Year,
-                        rateIn2Years,
-                        currentPayment,
-                        futurePayment,
-                        paymentIncrease: futurePayment - currentPayment,
-                        missedAppreciation1Year,
-                        missedAppreciation2Years,
-                        totalCostOfWaiting,
-                        extraProjectCost2Years
-                      };
-                    }, [projectCost, helocAPR, smartSummary, calculations, helocTerm]);
-                    
-                    return (
-                      <>
-                        {/* Tab Buttons */}
-                        <div className="flex gap-2 mb-5 overflow-x-auto pb-2">
-                          <button
-                            onClick={() => setActiveInsightTab('breakeven')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                              activeInsightTab === 'breakeven' 
-                                ? 'bg-emerald-600 text-white shadow-md' 
-                                : 'bg-white text-slate-600 hover:bg-emerald-100 border border-slate-200'
-                            }`}
-                          >
-                            ⏱️ Break-Even Timeline
-                          </button>
-                          <button
-                            onClick={() => setActiveInsightTab('cashflow')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                              activeInsightTab === 'cashflow' 
-                                ? 'bg-emerald-600 text-white shadow-md' 
-                                : 'bg-white text-slate-600 hover:bg-emerald-100 border border-slate-200'
-                            }`}
-                          >
-                            📈 Cash Flow Visual
-                          </button>
-                          <button
-                            onClick={() => setActiveInsightTab('donothing')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                              activeInsightTab === 'donothing' 
-                                ? 'bg-emerald-600 text-white shadow-md' 
-                                : 'bg-white text-slate-600 hover:bg-emerald-100 border border-slate-200'
-                            }`}
-                          >
-                            ⏸️ Cost of Waiting
-                          </button>
-                        </div>
-                        
-                        {/* BREAK-EVEN TIMELINE TAB */}
-                        {activeInsightTab === 'breakeven' && (
-                          <div className="bg-white rounded-xl p-5 border border-emerald-200">
-                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                              <span className="text-2xl">⏱️</span> When Does Your Renovation Pay for Itself?
-                            </h3>
-                            
-                            {breakEvenData.breakEvenMonth !== null ? (
-                              <>
-                                {/* Big Break-Even Number */}
-                                <div className="text-center mb-6">
-                                  <div className="inline-block bg-emerald-100 rounded-2xl px-8 py-4">
-                                    <p className="text-4xl font-bold text-emerald-700">
-                                      {breakEvenData.breakEvenMonth === 0 ? 'Immediately!' : `Month ${breakEvenData.breakEvenMonth}`}
-                                    </p>
-                                    <p className="text-emerald-600 font-medium">
-                                      {breakEvenData.breakEvenMonth === 0 
-                                        ? 'Your value add exceeds total loan cost' 
-                                        : `That's ${breakEvenData.breakEvenYears} years into your ${helocTerm}-year loan`}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                {/* Visual Timeline */}
-                                <div className="mb-6">
-                                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                                    <span>Start</span>
-                                    <span className="text-emerald-600 font-bold">Break-Even</span>
-                                    <span>Loan End</span>
-                                  </div>
-                                  <div className="h-4 bg-slate-200 rounded-full overflow-hidden relative">
-                                    {/* Paid portion (red/orange) */}
-                                    <div 
-                                      className="absolute left-0 top-0 h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-l-full transition-all duration-500"
-                                      style={{ width: `${breakEvenData.percentComplete}%` }}
-                                    />
-                                    {/* Value exceeds payment portion (green) */}
-                                    <div 
-                                      className="absolute top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-r-full transition-all duration-500"
-                                      style={{ left: `${breakEvenData.percentComplete}%`, width: `${100 - breakEvenData.percentComplete}%` }}
-                                    />
-                                    {/* Break-even marker */}
-                                    <div 
-                                      className="absolute top-0 h-full w-1 bg-emerald-700"
-                                      style={{ left: `${breakEvenData.percentComplete}%` }}
-                                    />
-                                  </div>
-                                  <div className="flex justify-between mt-2">
-                                    <span className="text-xs text-amber-600 font-medium">Building value...</span>
-                                    <span className="text-xs text-emerald-600 font-medium">Pure savings! 💰</span>
-                                  </div>
-                                </div>
-                                
-                                {/* Key Stats */}
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="bg-slate-50 rounded-lg p-3 text-center">
-                                    <p className="text-xs text-slate-500">Value You Add</p>
-                                    <p className="text-lg font-bold text-slate-800">{formatCurrency(breakEvenData.valueAdd)}</p>
-                                  </div>
-                                  <div className="bg-slate-50 rounded-lg p-3 text-center">
-                                    <p className="text-xs text-slate-500">Total Loan Cost</p>
-                                    <p className="text-lg font-bold text-slate-800">{formatCurrency(breakEvenData.totalLoanCost)}</p>
-                                  </div>
-                                  <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                                    <p className="text-xs text-emerald-600">Net Gain at End</p>
-                                    <p className="text-lg font-bold text-emerald-700">
-                                      {formatCurrency(breakEvenData.valueAdd * Math.pow(1.03, helocTerm) - breakEvenData.totalLoanCost)}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                <p className="text-sm text-slate-600 mt-4 bg-emerald-50 p-3 rounded-lg">
-                                  <strong>💡 What this means:</strong> After month {breakEvenData.breakEvenMonth}, every payment you make is essentially "free" — 
-                                  the value your renovation adds to your home already exceeds what you've paid. By loan end, you're ahead by{' '}
-                                  <strong className="text-emerald-700">{formatCurrency(breakEvenData.valueAdd * Math.pow(1.03, helocTerm) - breakEvenData.totalLoanCost)}</strong>.
-                                </p>
-                              </>
-                            ) : (
-                              <div className="text-center py-6">
-                                <p className="text-amber-600 font-medium">
-                                  ⚠️ With current ROI, the loan cost may exceed value added. Consider higher-ROI projects or paying cash.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* CASH FLOW VISUAL TAB */}
-                        {activeInsightTab === 'cashflow' && (
-                          <div className="bg-white rounded-xl p-5 border border-emerald-200">
-                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                              <span className="text-2xl">📈</span> Your Money Over Time
-                            </h3>
-                            
-                            {/* Chart */}
-                            <div className="h-64 w-full mb-4">
-                              {(() => {
-                                const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } = Recharts;
-                                
-                                return (
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={cashFlowChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                      <XAxis 
-                                        dataKey="label" 
-                                        tick={{ fontSize: 11, fill: '#64748b' }}
-                                        tickLine={{ stroke: '#cbd5e1' }}
-                                      />
-                                      <YAxis 
-                                        tick={{ fontSize: 11, fill: '#64748b' }}
-                                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                                        tickLine={{ stroke: '#cbd5e1' }}
-                                      />
-                                      <Tooltip 
-                                        formatter={(value, name) => [formatCurrency(value), name === 'paid' ? 'Total Paid' : name === 'value' ? 'Home Value Added' : 'Net Position']}
-                                        labelStyle={{ fontWeight: 'bold' }}
-                                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                                      />
-                                      <Legend />
-                                      <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="3 3" />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="paid" 
-                                        stroke="#f59e0b" 
-                                        strokeWidth={3}
-                                        name="Cumulative Paid"
-                                        dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
-                                      />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="value" 
-                                        stroke="#10b981" 
-                                        strokeWidth={3}
-                                        name="Value Added (w/ appreciation)"
-                                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                                      />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="net" 
-                                        stroke="#6366f1" 
-                                        strokeWidth={2}
-                                        strokeDasharray="5 5"
-                                        name="Net Position"
-                                        dot={{ fill: '#6366f1', strokeWidth: 2, r: 3 }}
-                                      />
-                                    </LineChart>
-                                  </ResponsiveContainer>
-                                );
-                              })()}
-                            </div>
-                            
-                            {/* Legend Explanation */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                              <div className="flex items-center gap-2 bg-amber-50 p-3 rounded-lg">
-                                <div className="w-4 h-1 bg-amber-500 rounded"></div>
-                                <div>
-                                  <p className="text-xs font-medium text-amber-700">Cumulative Paid</p>
-                                  <p className="text-xs text-amber-600">Total loan payments to date</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 bg-emerald-50 p-3 rounded-lg">
-                                <div className="w-4 h-1 bg-emerald-500 rounded"></div>
-                                <div>
-                                  <p className="text-xs font-medium text-emerald-700">Value Added</p>
-                                  <p className="text-xs text-emerald-600">Home value increase + 3% appreciation</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg">
-                                <div className="w-4 h-1 bg-indigo-500 rounded" style={{ borderStyle: 'dashed' }}></div>
-                                <div>
-                                  <p className="text-xs font-medium text-indigo-700">Net Position</p>
-                                  <p className="text-xs text-indigo-600">Value minus payments (your "profit")</p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Key Insight */}
-                            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 p-4 rounded-lg border border-emerald-200">
-                              <p className="text-sm text-slate-700">
-                                <strong>📊 Reading this chart:</strong> When the green line (value) crosses above the orange line (paid), 
-                                you've broken even. The purple dashed line shows your net wealth position at any point. 
-                                By year {helocTerm}, you're at <strong className="text-emerald-700">
-                                  {formatCurrency(cashFlowChartData[cashFlowChartData.length - 1]?.net || 0)}
-                                </strong> net.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* DO NOTHING SCENARIO TAB */}
-                        {activeInsightTab === 'donothing' && (
-                          <div className="bg-white rounded-xl p-5 border border-emerald-200">
-                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                              <span className="text-2xl">⏸️</span> What If You Wait?
-                            </h3>
-                            
-                            {/* Cost of Waiting Headline */}
-                            <div className="text-center mb-6">
-                              <div className="inline-block bg-red-50 rounded-2xl px-8 py-4 border border-red-200">
-                                <p className="text-sm text-red-600 font-medium mb-1">Waiting 2 years could cost you</p>
-                                <p className="text-4xl font-bold text-red-600">
-                                  {formatCurrency(doNothingAnalysis.totalCostOfWaiting)}
-                                </p>
-                                <p className="text-xs text-red-500 mt-1">in extra costs + missed appreciation</p>
-                              </div>
-                            </div>
-                            
-                            {/* Comparison Table */}
-                            <div className="overflow-x-auto mb-6">
-                              <table className="w-full text-sm">
-                                <thead>
-                                  <tr className="border-b border-slate-200">
-                                    <th className="text-left py-2 px-3 text-slate-600 font-medium"></th>
-                                    <th className="text-center py-2 px-3 text-emerald-700 font-bold bg-emerald-50 rounded-tl-lg">Act Now</th>
-                                    <th className="text-center py-2 px-3 text-amber-700 font-bold bg-amber-50">Wait 1 Year</th>
-                                    <th className="text-center py-2 px-3 text-red-700 font-bold bg-red-50 rounded-tr-lg">Wait 2 Years</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr className="border-b border-slate-100">
-                                    <td className="py-3 px-3 text-slate-600">Project Cost</td>
-                                    <td className="py-3 px-3 text-center font-medium text-emerald-700 bg-emerald-50/50">{formatCurrency(doNothingAnalysis.currentCost)}</td>
-                                    <td className="py-3 px-3 text-center font-medium text-amber-700 bg-amber-50/50">{formatCurrency(doNothingAnalysis.costIn1Year)}</td>
-                                    <td className="py-3 px-3 text-center font-medium text-red-700 bg-red-50/50">{formatCurrency(doNothingAnalysis.costIn2Years)}</td>
-                                  </tr>
-                                  <tr className="border-b border-slate-100">
-                                    <td className="py-3 px-3 text-slate-600">Est. HELOC Rate</td>
-                                    <td className="py-3 px-3 text-center font-medium text-emerald-700 bg-emerald-50/50">{doNothingAnalysis.currentRate.toFixed(2)}%</td>
-                                    <td className="py-3 px-3 text-center font-medium text-amber-700 bg-amber-50/50">{doNothingAnalysis.rateIn1Year.toFixed(2)}%</td>
-                                    <td className="py-3 px-3 text-center font-medium text-red-700 bg-red-50/50">{doNothingAnalysis.rateIn2Years.toFixed(2)}%</td>
-                                  </tr>
-                                  <tr className="border-b border-slate-100">
-                                    <td className="py-3 px-3 text-slate-600">Monthly Payment</td>
-                                    <td className="py-3 px-3 text-center font-medium text-emerald-700 bg-emerald-50/50">{formatCurrencyDecimals(doNothingAnalysis.currentPayment)}</td>
-                                    <td className="py-3 px-3 text-center font-medium text-amber-700 bg-amber-50/50">~{formatCurrencyDecimals(doNothingAnalysis.currentPayment * 1.04)}</td>
-                                    <td className="py-3 px-3 text-center font-medium text-red-700 bg-red-50/50">{formatCurrencyDecimals(doNothingAnalysis.futurePayment)}</td>
-                                  </tr>
-                                  <tr>
-                                    <td className="py-3 px-3 text-slate-600">Missed Home Value Gain</td>
-                                    <td className="py-3 px-3 text-center font-medium text-emerald-700 bg-emerald-50/50">$0</td>
-                                    <td className="py-3 px-3 text-center font-medium text-amber-700 bg-amber-50/50">-{formatCurrency(doNothingAnalysis.missedAppreciation1Year)}</td>
-                                    <td className="py-3 px-3 text-center font-medium text-red-700 bg-red-50/50">-{formatCurrency(doNothingAnalysis.missedAppreciation2Years)}</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                            
-                            {/* Why Costs Rise */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                              <div className="bg-slate-50 p-3 rounded-lg">
-                                <p className="text-xs text-slate-500 mb-1">📦 Material Inflation</p>
-                                <p className="text-sm font-medium text-slate-700">~5-8% annually for construction materials</p>
-                              </div>
-                              <div className="bg-slate-50 p-3 rounded-lg">
-                                <p className="text-xs text-slate-500 mb-1">👷 Labor Costs</p>
-                                <p className="text-sm font-medium text-slate-700">Contractor rates rising 3-5% per year</p>
-                              </div>
-                              <div className="bg-slate-50 p-3 rounded-lg">
-                                <p className="text-xs text-slate-500 mb-1">🏚️ Deterioration</p>
-                                <p className="text-sm font-medium text-slate-700">Deferred maintenance compounds problems</p>
-                              </div>
-                            </div>
-                            
-                            {/* Action CTA */}
-                            <div className="bg-gradient-to-r from-emerald-100 to-teal-100 p-4 rounded-lg border border-emerald-300">
-                              <p className="text-sm text-emerald-800">
-                                <strong>🚀 The bottom line:</strong> Every month you wait, your project gets more expensive while you miss out on 
-                                home value appreciation. Acting now locks in today's prices and starts building equity immediately. 
-                                In 2 years, you'd pay <strong className="text-red-600">{formatCurrency(doNothingAnalysis.extraProjectCost2Years)} more</strong> for the same work.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Original Key Metrics (now collapsed) */}
-                        <details className="mt-4">
-                          <summary className="cursor-pointer text-sm text-slate-600 hover:text-slate-800 font-medium">
-                            📋 View Quick Stats
-                          </summary>
-                          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
-                              <p className="text-xs text-slate-500 mb-1">True Monthly Cost*</p>
-                              <p className="text-lg font-bold text-emerald-600">{formatCurrency(Math.max(0, smartSummary.bestOption === 'heloc' ? smartSummary.trueMonthlyHELOC : smartSummary.trueMonthlyUnsecured))}</p>
-                              <p className="text-xs text-slate-400">after value add</p>
-                            </div>
-                            <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
-                              <p className="text-xs text-slate-500 mb-1">HELOC Savings</p>
-                              <p className="text-lg font-bold text-blue-600">{formatCurrency(smartSummary.totalSavingsHELOC)}</p>
-                              <p className="text-xs text-slate-400">vs unsecured</p>
-                            </div>
-                            <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
-                              <p className="text-xs text-slate-500 mb-1">5-Year Wealth Impact</p>
-                              <p className={`text-lg font-bold ${smartSummary.wealthGainHELOC > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                {smartSummary.wealthGainHELOC > 0 ? '+' : ''}{formatCurrency(smartSummary.wealthGainHELOC)}
-                              </p>
-                              <p className="text-xs text-slate-400">w/ HELOC + appreciation</p>
-                            </div>
-                            <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
-                              <p className="text-xs text-slate-500 mb-1">ROI vs Interest</p>
-                              <p className={`text-lg font-bold ${smartSummary.roi > helocAPR ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                {smartSummary.roi > helocAPR ? '✓ Good' : '⚠️ Watch'}
-                              </p>
-                              <p className="text-xs text-slate-400">{smartSummary.roi.toFixed(0)}% vs {helocAPR}%</p>
-                            </div>
-                          </div>
-                        </details>
-
-                        {/* Financing Verdict */}
-                        <div className={`mt-4 p-4 rounded-lg ${
-                          smartSummary.financingVerdict === 'good-investment' ? 'bg-emerald-100 border border-emerald-300' :
-                          smartSummary.financingVerdict === 'consider-carefully' ? 'bg-amber-100 border border-amber-300' :
-                          'bg-red-100 border border-red-300'
-                        }`}>
-                          {smartSummary.financingVerdict === 'good-investment' ? (
-                            <p className="text-sm text-emerald-800">
-                              <strong>✅ Smart to Finance:</strong> Your project's ROI ({smartSummary.roi.toFixed(0)}%) exceeds the HELOC rate ({helocAPR}%). 
-                              You're essentially borrowing cheap money to create value. The renovation should "pay for itself" through increased home value.
-                            </p>
-                          ) : smartSummary.financingVerdict === 'consider-carefully' ? (
-                            <p className="text-sm text-amber-800">
-                              <strong>⚠️ Consider Carefully:</strong> Your ROI ({smartSummary.roi.toFixed(0)}%) is close to your borrowing cost. 
-                              This could still make sense if you plan to stay long-term (5+ years) or if these are necessary repairs. Just don't expect to profit at sale.
-                            </p>
-                          ) : (
-                            <p className="text-sm text-red-800">
-                              <strong>💡 Consider Paying Cash:</strong> Your project's ROI ({smartSummary.roi.toFixed(0)}%) is well below borrowing costs. 
-                              If you have the savings, paying cash avoids interest. If you must finance, keep the term short to minimize interest paid.
-                            </p>
-                          )}
-                        </div>
-
-                        <p className="text-xs text-slate-400 mt-3">*Assumes 3% annual home appreciation, 5-8% annual construction cost inflation. For illustration only.</p>
-                      </>
-                    );
-                  })()}
-                </section>
-              )}
-
-              {/* Recommendation Box */}
-              <section className={`rounded-2xl p-6 sm:p-8 ${recommendation.highlight === 'unsecured' ? 'bg-amber-50 border-2 border-amber-200' : recommendation.highlight === 'heloc' ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-100 border-2 border-slate-200'}`} aria-label="Recommendation">
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl" aria-hidden="true">{recommendation.icon}</span>
-                  <div>
-                    <h2 className="text-lg font-bold text-slate-800 mb-2">{recommendation.title}</h2>
-                    <p className="text-slate-600 leading-relaxed">{recommendation.text}</p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Share Results */}
-              <section className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6" aria-label="Share results">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📤</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-800">Share These Results</h3>
-                      <p className="text-sm text-slate-500">Send this comparison to a client or save for later</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        const params = new URLSearchParams({
-                          cost: projectCost,
-                          credit: creditScore,
-                          home: homeValue || '',
-                          mortgage: mortgageBalance || ''
-                        });
-                        const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-                        navigator.clipboard.writeText(url);
-                        alert('Link copied! Share it with your client.');
-                      }}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <span>🔗</span> Copy Link
-                    </button>
-                    <button
-                      onClick={() => {
-                        const text = `Home Improvement Loan Comparison
-
-Project Cost: ${formatCurrency(projectCost)}
-Credit Score: ${creditScore.charAt(0).toUpperCase() + creditScore.slice(1)}
-
-PERSONAL LOAN (${unsecuredTerm} years @ ${unsecuredAPR}%):
-• Monthly Payment: ${formatCurrencyDecimals(calculations.unsecured.monthly)}
-• Total Interest: ${formatCurrency(calculations.unsecured.interest)}
-
-HELOC (${helocTerm} years @ ${helocAPR}%):
-• Monthly Payment: ${formatCurrencyDecimals(calculations.heloc.monthly)}
-• Total Interest: ${formatCurrency(calculations.heloc.interest)}
-• Est. Tax Savings: ${formatCurrency(calculations.heloc.taxSavings)}
-
-Monthly Savings with HELOC: ${formatCurrency(calculations.monthlySavings)}
-
-Calculate your own: ${window.location.origin}`;
-                        navigator.clipboard.writeText(text);
-                        alert('Summary copied! Paste it in an email or text.');
-                      }}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <span>📋</span> Copy Summary
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* Disclaimer */}
-              <aside className="mt-6 p-4 bg-slate-50 rounded-xl">
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  <span className="font-bold text-slate-600">*Disclaimer:</span> Tax savings estimate assumes you itemize deductions and that HELOC interest is used for home improvements (tax-deductible per IRS rules). Actual rates and terms will vary based on your lender and financial profile. HELOC rates are variable and may increase over time. This calculator is for educational purposes only and does not constitute financial advice. Consult with a qualified financial advisor before making any financing decisions.
-                </p>
-              </aside>
-            </main>
-
-            {/* Footer */}
-            <footer className="mt-12 pt-8 border-t border-slate-200">
-              <div className="text-center">
-                <p className="text-sm text-slate-500 mb-2">
-                  Free tool for contractors and homeowners
-                </p>
-                <p className="text-xs text-slate-400 mb-4">
-                  Powered by <a href="https://renoratecheck.com" className="text-emerald-600 hover:text-emerald-700 font-medium">RenoRateCheck.com</a>
-                </p>
-                <nav className="flex justify-center gap-6 text-sm">
-                  <a href="/about" className="text-slate-600 hover:text-emerald-600">About</a>
-                  <a href="/privacy" className="text-slate-600 hover:text-emerald-600">Privacy</a>
-                </nav>
               </div>
-            </footer>
+
+              {/* HELOC Card */}
+              <div className={`bg-white rounded-2xl shadow-sm border-2 p-6 transition-all ${recommendation.highlight === 'heloc' ? 'border-emerald-400 ring-4 ring-emerald-50' : 'border-slate-200'}`}>
+                <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+                  <div>
+                    <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-2">💰 The Cash Flow Option</span>
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center">
+                      HELOC
+                      <InfoButton title="What is a HELOC?">
+                        <p>A <strong>Home Equity Line of Credit</strong> lets you borrow against the equity in your home — the difference between your home's value and what you owe.</p>
+                        <p className="mt-2"><strong>Pros:</strong></p>
+                        <ul className="list-disc list-inside text-xs"><li>Lower interest rates</li><li>Interest may be tax-deductible</li><li>Longer terms = lower payments</li></ul>
+                        <p className="mt-2"><strong>Cons:</strong></p>
+                        <ul className="list-disc list-inside text-xs"><li>Your home is collateral (lien)</li><li>Variable rate can increase</li><li>Closing costs add to balance</li></ul>
+                      </InfoButton>
+                    </h3>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                    Requires Equity
+                    <InfoButton title="What is Home Equity?">
+                      <p><strong>Home equity</strong> = Your home's current value minus what you still owe on your mortgage.</p>
+                      <p className="mt-2"><strong>Example:</strong></p>
+                      <p className="text-xs">Home value: $400,000<br/>Mortgage owed: $250,000<br/>Your equity: $150,000</p>
+                      <p className="mt-2 text-xs text-slate-500">Most lenders require 15-20% equity and limit total borrowing to 80-85% of home value.</p>
+                    </InfoButton>
+                  </span>
+                </div>
+
+                <p className="text-blue-600 font-semibold text-sm mb-4">Paid off by {new Date().getFullYear() + helocTerm}</p>
+
+                {/* Term Selector */}
+                <div className="mb-4 p-3 bg-slate-50 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Loan Term</span>
+                    <div className="flex items-center gap-2">
+                      {[5, 10, 15, 20].map((years) => (
+                        <button key={years} onClick={() => { setHelocTerm(years); trackInteraction(); }} className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${helocTerm === years ? 'bg-blue-500 text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>{years} yr</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Monthly Payment</p>
+                  <p className="text-4xl font-bold text-slate-800" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>{formatCurrencyDecimals(calculations.heloc.monthly)}</p>
+                  {calculations.monthlySavings > 0 && (
+                    <p className="text-emerald-600 text-sm font-medium mt-1">Save {formatCurrency(calculations.monthlySavings)}/mo vs. unsecured</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 pt-4 border-t border-slate-100">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Loan Amount</span>
+                    <span className="font-medium text-slate-800">{formatCurrency(calculations.heloc.principal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Closing Costs</span>
+                    <span className="font-medium text-slate-500">{formatCurrency(calculations.heloc.closingCosts)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 flex items-center">
+                      APR (Variable)
+                      <InfoButton title="Variable Rate Warning">
+                        <p>Unlike fixed-rate loans, HELOC rates can <strong>change over time</strong> based on market conditions.</p>
+                        <p className="mt-2">Your rate is tied to the Prime Rate. If the Federal Reserve raises rates, your monthly payment will increase.</p>
+                        <p className="mt-2 text-amber-600 text-xs">⚠️ Budget for potential rate increases when choosing a HELOC.</p>
+                      </InfoButton>
+                    </span>
+                    <span className="font-medium text-slate-800">{helocAPR}%</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Total Interest</span>
+                    <span className={`font-medium ${calculations.interestDifference > 0 ? 'text-red-600' : 'text-slate-800'}`}>
+                      {formatCurrency(calculations.heloc.interest)}
+                      {calculations.interestDifference > 0 && <span className="text-xs ml-1">(+{formatCurrency(calculations.interestDifference)})</span>}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 flex items-center">
+                      Est. Tax Savings*
+                      <InfoButton title="Tax Deduction for Home Improvements">
+                        <p>When you use a HELOC for home improvements, the interest you pay may be <strong>tax-deductible</strong>.</p>
+                        <p className="mt-2"><strong>How it works:</strong><br/>Interest paid × Your tax rate = Savings</p>
+                        <p className="mt-2 text-xs">{formatCurrency(calculations.heloc.interest)} × 22% = {formatCurrency(calculations.heloc.taxSavings)}</p>
+                        <p className="mt-2 text-amber-600 text-xs">⚠️ You must itemize deductions (not take standard deduction) to benefit. Consult a tax professional.</p>
+                      </InfoButton>
+                    </span>
+                    <span className="font-medium text-emerald-600">-{formatCurrency(calculations.heloc.taxSavings)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-100">
+                    <span className="text-slate-700 font-medium">Total Cost</span>
+                    <span className="font-bold text-slate-800">{formatCurrency(calculations.heloc.totalPaid)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chart Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-6">
+              <h3 className="text-lg font-bold text-slate-800 mb-6">Side-by-Side Comparison</h3>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm font-medium text-slate-600 mb-3">Monthly Payment</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <span className="w-24 text-sm text-slate-600">Unsecured</span>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="h-full bg-amber-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.unsecured.monthly / Math.max(calculations.unsecured.monthly, calculations.heloc.monthly)) * 100)}%` }}>
+                          <span className="text-sm font-bold text-amber-900">{formatCurrencyDecimals(calculations.unsecured.monthly)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="w-24 text-sm text-slate-600">HELOC</span>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="h-full bg-blue-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.heloc.monthly / Math.max(calculations.unsecured.monthly, calculations.heloc.monthly)) * 100)}%` }}>
+                          <span className="text-sm font-bold text-blue-900">{formatCurrencyDecimals(calculations.heloc.monthly)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-600 mb-3">Total Cost of Loan</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <span className="w-24 text-sm text-slate-600">Unsecured</span>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="h-full bg-amber-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.unsecured.totalPaid / Math.max(calculations.unsecured.totalPaid, calculations.heloc.totalPaid)) * 100)}%` }}>
+                          <span className="text-sm font-bold text-amber-900">{formatCurrency(calculations.unsecured.totalPaid)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="w-24 text-sm text-slate-600">HELOC</span>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="h-full bg-blue-400 rounded-lg flex items-center justify-end pr-3 transition-all duration-500" style={{ width: `${Math.min(100, (calculations.heloc.totalPaid / Math.max(calculations.unsecured.totalPaid, calculations.heloc.totalPaid)) * 100)}%` }}>
+                          <span className="text-sm font-bold text-blue-900">{formatCurrency(calculations.heloc.totalPaid)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendation Box */}
+            <div className={`rounded-2xl p-6 sm:p-8 ${recommendation.highlight === 'unsecured' ? 'bg-amber-50 border-2 border-amber-200' : recommendation.highlight === 'heloc' ? 'bg-blue-50 border-2 border-blue-200' : 'bg-slate-100 border-2 border-slate-200'}`}>
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">{recommendation.icon}</span>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">{recommendation.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{recommendation.text}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Lead Gen Form */}
+            {showLeadForm && !leadSubmitted && (
+              <div className="mt-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 sm:p-8 border-2 border-emerald-200">
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl">📧</span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-slate-800 mb-2">Want a summary of your comparison?</h3>
+                    <p className="text-slate-600 text-sm mb-4">Get a PDF breakdown of these numbers sent to your inbox — plus tips on questions to ask lenders. No spam, no sales calls. Just helpful info.</p>
+                    <form onSubmit={handleLeadSubmit} className="flex flex-col sm:flex-row gap-3">
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required className="flex-1 px-4 py-3 border border-slate-300 rounded-xl text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all" />
+                      <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                        {isSubmitting ? 'Sending...' : 'Send My Summary'}
+                      </button>
+                    </form>
+                    <p className="text-xs text-slate-500 mt-3">We're not lenders or brokers — just homeowners helping homeowners make informed decisions.</p>
+                  </div>
+                  <button onClick={() => setShowLeadForm(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Close">×</button>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {leadSubmitted && (
+              <div className="mt-6 bg-emerald-50 rounded-2xl p-6 border-2 border-emerald-200">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">✅</span>
+                  <div>
+                    <p className="font-semibold text-emerald-800">Check your inbox!</p>
+                    <p className="text-sm text-emerald-700">Your loan comparison summary is on its way.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Disclaimer */}
+            <div className="mt-6 p-4 bg-slate-50 rounded-xl">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                <span className="font-bold text-slate-600">*Disclaimer:</span> Tax savings estimate assumes you itemize deductions and that HELOC interest is used for home improvements (tax-deductible per IRS rules). Actual rates and terms will vary based on your lender and financial profile. HELOC rates are variable and may increase over time. This calculator is for educational purposes only and does not constitute financial advice. Consult with a qualified financial advisor before making any financing decisions.
+              </p>
+            </div>
           </div>
         </div>
       );
